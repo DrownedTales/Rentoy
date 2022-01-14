@@ -1,0 +1,9 @@
+SERVER_IP:127.0.0.1
+SERVER_PORT:1243
+
+LISTEN_NUMBER:5
+PACKET_SIZE:1024
+HEADER_SIZE:20
+
+#estos no pueden ser mayor que 10 chars
+TYPES_OF_MSGS:tipo1,tipo2
