@@ -8,4 +8,6 @@ class Jugador:
     name : str
     cliente : Cliente
 
-    
+    def __init__(self, name, cliente) -> None:
+        self.name = name
+        self.cliente = cliente

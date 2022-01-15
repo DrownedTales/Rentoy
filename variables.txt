@@ -6,4 +6,4 @@ PACKET_SIZE:1024
 HEADER_SIZE:20
 
 #estos no pueden ser mayor que 10 chars
-TYPES_OF_MSGS:texto,tipo2
+TYPES_OF_MSGS:texto,eleccion,peticion

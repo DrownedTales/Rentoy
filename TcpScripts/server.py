@@ -21,7 +21,6 @@ class Server:
     our_socket: socket.socket
 
     accepting: bool = False
-    listening: bool = False
 
     events = Events()
 
@@ -36,6 +35,7 @@ class Server:
         client.socket.close()
 
     def send_message(self, client: Cliente, msg, type_of_msg):
+        print("quiero enviar: " + str(msg) + " de tipo: " + str(type_of_msg))
         if type_of_msg not in self.types_of_msgs:
             raise Exception("type of message not valid")
 
@@ -43,9 +43,9 @@ class Server:
 
         header = type_of_msg.ljust(10) + ","+ msg_lengt.ljust(9)
 
-        packet = bytes(header, "utf-8") + bytes(msg, "utf-8")
+        packet = header.encode("utf-8") + pickle.dumps(msg)
 
-        client.socket.send(pickle.dumps(packet))
+        client.socket.send(packet)
 
     def send_message_to_all(self, msg):
         for client in self.clientes:
@@ -54,9 +54,6 @@ class Server:
 
     def __listen_to_client(self, client: Cliente):
         while True:
-            if self.listening == False:
-                time.sleep(0.01) #para no hacer un bucle infinito sin descanso
-                continue
 
             client_socket = client.socket
 
@@ -96,7 +93,7 @@ class Server:
                 self.clientes.append(client)
                 self.events.on_client_connect(client);
 
-                thread = threading.Thread(target=self.__listen_to_client, args=(clientsocket, ))
+                thread = threading.Thread(target=self.__listen_to_client, args=(client, ))
                 thread.start()
 
 

@@ -27,11 +27,12 @@ class Client:
 
         msg_lengt = str(len(msg))
 
-        header = type_of_msg.ljust(self.header_size / 2) + msg_lengt.ljust(self.header_size / 2)
+        header = type_of_msg.ljust(10) + ","+ msg_lengt.ljust(9)
 
-        packet = bytes(header, "utf-8") + bytes(msg, "utf-8")
+        packet = header.encode("utf-8") + pickle.dumps(msg)
 
-        self.my_socket.send(pickle.dumps(packet))
+        self.my_socket.send(packet)
+
 
 
     def __listen_to_server(self):

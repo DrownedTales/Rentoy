@@ -2,35 +2,30 @@ import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), os.path.pardir)))
-from TcpScripts.server import Server
-from TcpScripts.ClaseCliente import Cliente
+from TcpScripts.connectionManager import ConnectionManager
 
-from ClasePlayer import Jugador
+from GameScripts.ClasePlayer import Jugador
 
-jugadores : list[Jugador]
+N_JUGADORES = 1
 
-server = None
+jugadores = []
 
-def establecer_jugador(cliente):
-    server.send_message(cliente, "Escribe tu nombre:", "texto")
+con_man : ConnectionManager = None
 
-def on_message_recived(msg, type_of_msg: str, client: Cliente):
-    pass
 
-def on_client_exit(client: Cliente):
-    pass
-
-def on_client_connect(client: Cliente):
-    establecer_jugador(client)
+def __establecer_jugador(nombre, cliente):
+    print("nuevo jugador: " + nombre)
+    jugadores.append(Jugador(nombre, cliente))
 
 
 def start():
-    global server
-    server = Server()
+    global con_man
+    con_man = ConnectionManager()
 
-    server.events.on_message_recived += on_message_recived
-    server.events.on_client_exit += on_client_exit
-    server.events.on_client_connect += on_client_connect
+    con_man.beginAcceptingConnections(lambda client : con_man.pedir_respuesta(client, "Escriba su nombre:", __establecer_jugador))
 
-    server.beginAcceptingConnections()
-    
+    global jugadores
+
+    con_man.wait_until(lambda : len(jugadores) >= N_JUGADORES)
+
+    print("listos para empezar")

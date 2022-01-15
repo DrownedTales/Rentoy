@@ -1,4 +1,3 @@
-
 def mostrarMensaje(parametro):
     print(parametro)
 
@@ -14,3 +13,6 @@ def esperaRespuesta(parametros, funciones):
         return esperaRespuesta(parametros, funciones)
     else:
         return funciones[index]
+
+def recibe_respuesta():
+    return input()
