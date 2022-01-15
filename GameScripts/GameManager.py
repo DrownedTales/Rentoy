@@ -5,6 +5,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), os.pat
 from TcpScripts.server import Server
 from TcpScripts.ClaseCliente import Cliente
 
+from ClasePlayer import Jugador
+
+jugadores : list[Jugador]
+
+server = None
+
+def establecer_jugador(cliente):
+    server.send_message(cliente, "Escribe tu nombre:", "texto")
 
 def on_message_recived(msg, type_of_msg: str, client: Cliente):
     pass
@@ -13,10 +21,16 @@ def on_client_exit(client: Cliente):
     pass
 
 def on_client_connect(client: Cliente):
-    pass
+    establecer_jugador(client)
 
-server = Server()
 
-server.events.on_message_recived += on_message_recived
-server.events.on_client_exit += on_client_exit
-server.events.on_client_connect += on_client_connect
+def start():
+    global server
+    server = Server()
+
+    server.events.on_message_recived += on_message_recived
+    server.events.on_client_exit += on_client_exit
+    server.events.on_client_connect += on_client_connect
+
+    server.beginAcceptingConnections()
+    

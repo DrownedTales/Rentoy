@@ -5,14 +5,19 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), os.pat
 from TcpScripts.client import Client
 from TcpScripts.ClaseCliente import Cliente
 
+import Interfaz
+
+cliente : Client
 
 def on_server_close():
     pass
 
 def on_message_recived(msg, type_of_msg):
-    pass
+    if type_of_msg == "texto":
+        Interfaz.mostrarMensaje(msg)
 
-server = Client()
+def start():
+    cliente = Client()
 
-server.events.on_server_close += on_server_close
-server.events.on_message_recived += on_message_recived
+    cliente.events.on_server_close += on_server_close
+    cliente.events.on_message_recived += on_message_recived

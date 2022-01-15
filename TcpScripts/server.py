@@ -17,7 +17,7 @@ class Server:
     header_size: int
     types_of_msgs = []
 
-    clientes: list[Cliente]
+    clientes = []#: list[Cliente]
     our_socket: socket.socket
 
     accepting: bool = False
@@ -43,7 +43,7 @@ class Server:
 
         header = type_of_msg.ljust(10) + ","+ msg_lengt.ljust(9)
 
-        packet = bytes(header, "utf-8") + msg
+        packet = bytes(header, "utf-8") + bytes(msg, "utf-8")
 
         client.socket.send(pickle.dumps(packet))
 
@@ -89,7 +89,7 @@ class Server:
                 time.sleep(0.01)
                 continue
 
-            clientsocket, address = self.ourSocket.accept()
+            clientsocket, address = self.our_socket.accept()
 
             if self.accepting:
                 client = Cliente(address, clientsocket)

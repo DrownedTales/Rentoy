@@ -29,17 +29,13 @@ class Client:
 
         header = type_of_msg.ljust(self.header_size / 2) + msg_lengt.ljust(self.header_size / 2)
 
-        packet = bytes(header, "utf-8") + msg
+        packet = bytes(header, "utf-8") + bytes(msg, "utf-8")
 
         self.my_socket.send(pickle.dumps(packet))
 
 
     def __listen_to_server(self):
         while True:
-            if self.listening == False:
-                time.sleep(0.01) #para no hacer un bucle infinito sin descanso
-                continue
-
             try:
                 packet = self.my_socket.recv(self.packet_size)
             except:
