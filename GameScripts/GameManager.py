@@ -6,17 +6,26 @@ from TcpScripts.connectionManager import ConnectionManager
 
 from GameScripts.ClasePlayer import Jugador
 
-N_JUGADORES = 1
+from GameScripts.CartaScripts.Mazo import *
+
+N_JUGADORES = 2
 
 jugadores = []
 
 con_man : ConnectionManager = None
 
-
 def __establecer_jugador(nombre, cliente):
     print("nuevo jugador: " + nombre)
     jugadores.append(Jugador(nombre, cliente))
 
+def comienzo_ronda(n_rondas):
+    mazo = crear_mazo()
+    vira = sacar_carta_aleatoria(mazo)
+    print("La vira será " + vira)
+    for i in range(len(jugadores)):
+        for e in range(n_rondas):
+            carta = sacar_carta_aleatoria(mazo)
+            con_man.enviar_mensaje(jugadores[i].cliente, carta)
 
 def start():
     global con_man
@@ -28,4 +37,8 @@ def start():
 
     con_man.wait_until(lambda : len(jugadores) >= N_JUGADORES)
 
-    print("listos para empezar")
+    con_man.stopAcceptingConnections()
+
+    print("Listos para empezar...")
+
+    comienzo_ronda(2)

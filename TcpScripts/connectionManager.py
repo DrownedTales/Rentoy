@@ -42,6 +42,7 @@ class ConnectionManager:
         pass
 
     def on_client_connect(self, client: Cliente):
+        print("bacon")
         self.on_client_connect_func(client)
 
 
