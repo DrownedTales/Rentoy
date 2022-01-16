@@ -1,7 +1,7 @@
 def mostrarMensaje(parametro):
     print(parametro)
 
-def esperaRespuesta(parametros, funciones):
+def espera_eleccion(parametros, funciones):
     var = input()
     index = None
     for i in range(len(parametros)):
@@ -10,9 +10,10 @@ def esperaRespuesta(parametros, funciones):
             break
     if index == None:
         mostrarMensaje("Esta opción no existe.")
-        return esperaRespuesta(parametros, funciones)
+        return espera_eleccion(parametros, funciones)
     else:
         return funciones[index]
+
 
 def recibe_respuesta():
     return input()
