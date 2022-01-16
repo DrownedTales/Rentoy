@@ -6,4 +6,7 @@ PACKET_SIZE:1024
 HEADER_SIZE:20
 
 #estos no pueden ser mayor que 10 chars
-TYPES_OF_MSGS:texto,eleccion,peticion
+TYPES_OF_MSGS:data,eleccion,peticion
+
+PALOS:"Oro", "Copas", "Espadas", "Bastos"
+VALORES:"As", "2", "3", "4", "5", "6", "7", "Sota", "Caballo", "Rey"

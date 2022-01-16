@@ -1,6 +1,7 @@
 import time
 import os
 import sys
+from GameScripts.Player import enviar_mensaje
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), os.path.pardir)))
 from TcpScripts.server import Server
@@ -20,16 +21,44 @@ class ConnectionManager:
                 return
             time.sleep(period)
 
-    def enviar_mensaje(self, cliente: Cliente, msg):
-        self.server.send_message(cliente, msg, "texto")
+    def accion_para_varios(self, clientes, calling_func):
+        if not isinstance(clientes, list):
+            if isinstance(clientes, Cliente):
+                return False
+            else:
+                raise Exception("no se ha pasado un cliente valido")
+        
+        for cliente in clientes:
+            calling_func(cliente)
 
-    def pedir_eleccion(self, cliente: Cliente, texto_peticion, elecciones, funciones):
+        return True
+
+    def __enviar_un_mensaje(self, cliente, msg):
+        self.server.send_message(cliente, msg, "data")
+
+    def __pedir_una_eleccion(self, cliente, texto_peticion, elecciones, funciones):
         self.enviar_mensaje(cliente, texto_peticion)
         self.server.send_message(cliente, (elecciones, funciones), "eleccion")
 
-    def pedir_respuesta(self, cliente: Cliente, texto_peticion, funcion):
+    def __pedir_una_respuesta(self, cliente, texto_peticion, funcion):
         self.peticiones[cliente] = funcion
         self.server.send_message(cliente, texto_peticion, "peticion")
+
+
+    def enviar_mensaje(self, cliente, msg):
+        if self.accion_para_varios(cliente, lambda c: self.enviar_mensaje(c, msg)):
+            return
+        self.__enviar_un_mensaje(cliente, msg)
+
+    def pedir_eleccion(self, cliente, texto_peticion, elecciones, funciones):
+        if self.accion_para_varios(cliente, lambda c: self.pedir_eleccion(c, texto_peticion, elecciones, funciones)):
+            return
+        self.__pedir_una_eleccion(cliente, texto_peticion, elecciones, funciones)
+
+    def pedir_respuesta(self, cliente, texto_peticion, funcion):
+        if self.accion_para_varios(cliente, lambda c: self.pedir_eleccion(c, texto_peticion, funcion)):
+            return
+        self.__pedir_una_respuesta(cliente, texto_peticion, funcion)
 
 
     def on_message_recived(self, msg, type_of_msg: str, client: Cliente):
@@ -42,7 +71,6 @@ class ConnectionManager:
         pass
 
     def on_client_connect(self, client: Cliente):
-        print("bacon")
         self.on_client_connect_func(client)
 
 

@@ -35,7 +35,6 @@ class Server:
         client.socket.close()
 
     def send_message(self, client: Cliente, msg, type_of_msg):
-        print("quiero enviar: " + str(msg) + " de tipo: " + str(type_of_msg))
         if type_of_msg not in self.types_of_msgs:
             raise Exception("type of message not valid")
 
@@ -48,11 +47,6 @@ class Server:
         packet = header.encode("utf-8") + content
 
         client.socket.send(packet)
-
-    def send_message_to_all(self, msg):
-        for client in self.clientes:
-            client.socket.send(pickle.dumps(msg))
-
 
     def __listen_to_client(self, client: Cliente):
         while True:
@@ -119,7 +113,7 @@ class Server:
                 self.header_size = int(line.split(':')[1])
             elif (line.startswith("TYPES_OF_MSGS")):
                 for string in line.split(':')[1].split(','):
-                    self.types_of_msgs.append(string)
+                    self.types_of_msgs.append(string.strip())
 
         #socket init
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

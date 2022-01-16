@@ -13,19 +13,26 @@ cliente : Client = None
 
 mano = []
 
+def add_carta(carta: Carta):
+    mano.append(carta)
+    Interfaz.mostrarMensaje("La carta recibida es el " + carta.to_string())
+
+def mostrar_vira(carta: Carta):
+    Interfaz.mostrarMensaje(carta)
+
 def enviar_mensaje(msg):
-    cliente.send_message(msg, "texto")
+    cliente.send_message(msg, "data")
 
 def on_server_close():
-    pass
+    Interfaz.mostrarMensaje("el servidor se ha cerrado")
 
 def on_message_recived(msg, type_of_msg):
-    if type_of_msg == "texto":
+    if type_of_msg == "data":
+        #hace falta diferenciar entre carta y vira. Tarea para ti pablo. No tienes que tocar nada de lo que hay en TCP
         if isinstance(msg, Carta):
-            mano.append(msg)
-            Interfaz.mostrarMensaje("La carta recibida es el "+ msg.valor + " de " + msg.palo)
-        else: 
-            Interfaz.mostrarMensaje(msg)
+            add_carta(msg)
+        else:
+            Interfaz.mostrarMensaje("recibido: " + str(msg))
         
     elif type_of_msg == "peticion":
         Interfaz.mostrarMensaje(msg)

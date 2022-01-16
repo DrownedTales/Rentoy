@@ -25,11 +25,13 @@ class Client:
         if type_of_msg not in self.types_of_msgs:
             raise Exception("type of message not valid")
 
-        msg_lengt = str(len(msg))
+        content = pickle.dumps(msg)
+
+        msg_lengt = str(len(content))
 
         header = type_of_msg.ljust(10) + ","+ msg_lengt.ljust(9)
 
-        packet = header.encode("utf-8") + pickle.dumps(msg)
+        packet = header.encode("utf-8") + content
 
         self.my_socket.send(packet)
 

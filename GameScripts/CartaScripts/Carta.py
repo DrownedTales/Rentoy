@@ -1,11 +1,14 @@
 
-palos = ["Oro", "Copa", "Espada", "Basto"]
+palos = ["Oros", "Copas", "Espadas", "Bastos"]
 valores = ["As", "2", "3", "4", "5", "6", "7", "Sota", "Caballo", "Rey"]
 
 class Carta:
 
     palo : str
     valor : str
+
+    def to_string(self):
+        return self.valor + " de " + self.palo
 
     def __init__(self, a, b):
 

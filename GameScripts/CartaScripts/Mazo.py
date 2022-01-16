@@ -1,8 +1,6 @@
 from GameScripts.CartaScripts.Carta import *
 import random
 
-palos = ["Oro", "Copa", "Espada", "Basto"]
-valores = ["As", "2", "3", "4", "5", "6", "7", "Sota", "Caballo", "Rey"]
 
 def crear_mazo():
     mazo = []
