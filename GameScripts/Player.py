@@ -12,10 +12,15 @@ from GameScripts.CartaScripts.Carta import *
 cliente : Client = None
 
 mano = []
+vira = []
 
-def add_carta(carta: Carta):
+def add_carta_mano(carta: Carta):
     mano.append(carta)
     Interfaz.mostrarMensaje("La carta recibida es el " + carta.to_string())
+
+def add_carta_vira(carta: Carta):
+    vira.append(carta)
+    Interfaz.mostrarMensaje("La vira será el " + carta.to_string())
 
 def mostrar_vira(carta: Carta):
     Interfaz.mostrarMensaje(carta)
@@ -30,7 +35,10 @@ def on_message_recived(msg, type_of_msg):
     if type_of_msg == "data":
         #hace falta diferenciar entre carta y vira. Tarea para ti pablo. No tienes que tocar nada de lo que hay en TCP
         if isinstance(msg, Carta):
-            add_carta(msg)
+            if len(vira) == 1:
+                add_carta_mano(msg)
+            else:
+                add_carta_vira(msg)
         else:
             Interfaz.mostrarMensaje("recibido: " + str(msg))
         
