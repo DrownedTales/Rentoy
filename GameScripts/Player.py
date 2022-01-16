@@ -14,7 +14,7 @@ cliente : Client = None
 
 mano = []
 vira : Carta = None
-jugador : Jugador = None
+nombre_jugador : str = None
 
 def add_carta_mano(carta: Carta):
     mano.append(carta)
@@ -29,9 +29,9 @@ def reset_ronda(n_rondas):
     vira = None
     Interfaz.mostrarMensaje("Comenzará la ronda " + str(n_rondas))
 
-def set_jugador(participante):
-    global jugador
-    jugador = participante
+def set_jugador(nombre):
+    global nombre_jugador
+    nombre_jugador = nombre
 
 def mostrar_vira(carta: Carta):
     Interfaz.mostrarMensaje(carta)
@@ -56,14 +56,15 @@ def on_message_recived(msg, type_of_msg):
             elif msg[0] == "set jugador":
                 set_jugador(msg[1])
         else:
-            Interfaz.mostrarMensaje("recibido: " + str(msg))
+            Interfaz.mostrarMensaje("Game Manager: " + str(msg))
         
     elif type_of_msg == "peticion":
         Interfaz.mostrarMensaje(msg)
         enviar_mensaje(Interfaz.recibe_respuesta())
 
     elif type_of_msg == "eleccion":
-        Interfaz.espera_eleccion(msg[0], msg[1])(jugador)
+        func = Interfaz.espera_eleccion(msg[0], msg[1])
+        enviar_mensaje((func, nombre_jugador))
 
 
 

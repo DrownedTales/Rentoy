@@ -36,9 +36,15 @@ class ConnectionManager:
     def __enviar_un_mensaje(self, cliente, msg):
         self.server.send_message(cliente, msg, "data")
 
+    def __resolver_eleccion(self, msg, cliente):
+        msg[0](msg[1])
+        self.peticiones[cliente] == None
+
     def __pedir_una_eleccion(self, cliente, texto_peticion, elecciones, funciones):
+        self.peticiones[cliente] = self.__resolver_eleccion
         self.enviar_mensaje(cliente, texto_peticion)
         self.server.send_message(cliente, (elecciones, funciones), "eleccion")
+        self.wait_until(lambda : self.peticiones[cliente] == None)
 
     def __pedir_una_respuesta(self, cliente, texto_peticion, funcion):
         self.peticiones[cliente] = funcion

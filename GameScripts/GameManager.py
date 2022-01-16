@@ -10,35 +10,35 @@ from GameScripts.CartaScripts.Mazo import *
 
 N_JUGADORES = 1
 
-jugadores = []
+jugadores = dict()
 
 con_man : ConnectionManager = None
 
 def __get_clientes_de(jugadores):
     clientes = []
-    for jugador in jugadores:
-        clientes.append(jugador.cliente)
+    for nombre in jugadores.keys():
+        clientes.append(jugadores[nombre].cliente)
     return clientes
 
 def __establecer_jugador(nombre, cliente):
     print("nuevo jugador: " + nombre)
-    jugador_creado = Jugador(nombre, cliente)
-    jugadores.append(jugador_creado)
-    con_man.enviar_mensaje(cliente, ("set jugador", jugador_creado))
+    jugadores[nombre] = Jugador(nombre, cliente)
+    con_man.enviar_mensaje(cliente, ("set jugador", nombre))
 
-def boca_arriba(jugador):
-    con_man.enviar_mensaje(__get_clientes_de(jugadores), Carta(a, b))
-
-def boca_abajo():
+def boca_arriba(nombre_jugador):
+    #con_man.enviar_mensaje(__get_clientes_de(jugadores), Carta(a, b))
     pass
 
-def envio():
+def boca_abajo(nombre_jugador):
+    pass
+
+def envio(nombre_jugador):
     pass
     
 
 def comienzo_ronda(n_rondas):
 
-    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("resetear ronda", n_rondas))
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("resetear ronda", n_rondas + 1))
 
     mazo = crear_mazo()
 
@@ -46,10 +46,9 @@ def comienzo_ronda(n_rondas):
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), vira)
 
-    for i in range(len(jugadores)):
-        for e in range(n_rondas):
-            carta = sacar_carta_aleatoria(mazo)
-            con_man.enviar_mensaje(jugadores[i].cliente, carta)
+    for e in range(n_rondas):
+        carta = sacar_carta_aleatoria(mazo)
+        con_man.enviar_mensaje(__get_clientes_de(jugadores), carta)
 
     '''
     Tenemos 3 opciones:
@@ -61,8 +60,8 @@ def comienzo_ronda(n_rondas):
     '''
     ### HACER COSAS ###
 
-    con_man.pedir_eleccion(__get_clientes_de(jugadores[0]), "Elija su opción (BOCA ARRIBA, ENVIO)", ("BOCA ARRIBA", "ENVIO"), (boca_arriba, envio))
-
+    con_man.pedir_eleccion(jugadores["ale"].cliente, "Elija su opción (BOCA ARRIBA, ENVIO)",\
+        ("BOCA ARRIBA", "ENVIO"), (boca_arriba, envio))
 
 
 def comienzo_super_ronda():

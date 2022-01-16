@@ -23,5 +23,4 @@ def crear_sala():
 
 Interfaz.mostrarMensaje("Elige CONECTARSE o CREAR SALA.")
 
-
 Interfaz.espera_eleccion(["CONECTARSE", "CREAR SALA"], [conectarse, crear_sala])()
