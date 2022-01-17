@@ -24,6 +24,9 @@ def add_carta_vira(carta: Carta):
     vira = carta
     Interfaz.mostrarMensaje("La vira será el " + carta.to_string())
 
+def mostrar_mano():
+    Interfaz.mostrarMensaje(str(mano))
+
 def reset_ronda(n_rondas):
     mano = []
     vira = None
@@ -55,6 +58,8 @@ def on_message_recived(msg, type_of_msg):
                 reset_ronda(msg[1])
             elif msg[0] == "set jugador":
                 set_jugador(msg[1])
+        elif msg == "mostrar mano":
+            mostrar_mano()
         else:
             Interfaz.mostrarMensaje("Game Manager: " + str(msg))
         

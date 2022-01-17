@@ -5,8 +5,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), os.pat
 from TcpScripts.connectionManager import ConnectionManager
 
 from GameScripts.ClasePlayer import Jugador
-
 from GameScripts.CartaScripts.Mazo import *
+from GameScripts.Player import *
 
 N_JUGADORES = 1
 
@@ -25,9 +25,16 @@ def __establecer_jugador(nombre, cliente):
     jugadores[nombre] = Jugador(nombre, cliente)
     con_man.enviar_mensaje(cliente, ("set jugador", nombre))
 
-def boca_arriba(nombre_jugador):
-    #con_man.enviar_mensaje(__get_clientes_de(jugadores), Carta(a, b))
+def colocarla_boca_arriba(mano):
     pass
+
+def eleccion_carta(mano):
+    #################################
+    #con_man.pedir_eleccion(jugadores["ale"].cliente, "Elija su carta " + str(mano),tuple(mano), (lambda : colocarla_boca_arriba(mano)))
+
+def boca_arriba(nombre_jugador, manos):
+    mano = manos[nombre_jugador]
+    eleccion_carta(mano)
 
 def boca_abajo(nombre_jugador):
     pass
@@ -41,15 +48,22 @@ def comienzo_ronda(n_rondas):
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("resetear ronda", n_rondas + 1))
 
     mazo = crear_mazo()
+    manos = dict()
 
     vira: Carta = sacar_carta_aleatoria(mazo)
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), vira)
 
-    for e in range(n_rondas):
-        carta = sacar_carta_aleatoria(mazo)
-        con_man.enviar_mensaje(__get_clientes_de(jugadores), carta)
-
+    for i in jugadores.keys():
+        for e in range(n_rondas):
+            carta = sacar_carta_aleatoria(mazo)
+            con_man.enviar_mensaje(jugadores[i].cliente, carta)
+            clave = jugadores[i].nombre
+            if clave not in manos:
+                manos[clave] = [carta]
+            else:
+                manos[clave].append(carta)
+            
     '''
     Tenemos 3 opciones:
         -   Echar la carta boca arriba
@@ -61,7 +75,7 @@ def comienzo_ronda(n_rondas):
     ### HACER COSAS ###
 
     con_man.pedir_eleccion(jugadores["ale"].cliente, "Elija su opción (BOCA ARRIBA, ENVIO)",\
-        ("BOCA ARRIBA", "ENVIO"), (boca_arriba, envio))
+        ("BOCA ARRIBA", "ENVIO"), (lambda x : boca_arriba(x, manos), envio))
 
 
 def comienzo_super_ronda():
