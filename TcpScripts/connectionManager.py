@@ -12,6 +12,8 @@ class ConnectionManager:
 
     on_client_connect_func = None
 
+    elecciones = []
+
     peticiones = dict()
 
 
@@ -21,7 +23,7 @@ class ConnectionManager:
                 return
             time.sleep(period)
 
-    def accion_para_varios(self, clientes, calling_func):
+    def __accion_para_varios(self, clientes, calling_func):
         if not isinstance(clientes, list):
             if isinstance(clientes, Cliente):
                 return False
@@ -37,14 +39,15 @@ class ConnectionManager:
         self.server.send_message(cliente, msg, "data")
 
     def __resolver_eleccion(self, msg, cliente):
-        msg[0](msg[1])
-        self.peticiones[cliente] == None
+        if callable(msg[0]):
+            msg[0](msg[1])
+        else:
+            self.elecciones.append(msg[0])
 
     def __pedir_una_eleccion(self, cliente, texto_peticion, elecciones, funciones):
         self.peticiones[cliente] = self.__resolver_eleccion
         self.enviar_mensaje(cliente, texto_peticion)
         self.server.send_message(cliente, (elecciones, funciones), "eleccion")
-        self.wait_until(lambda : self.peticiones[cliente] == None)
 
     def __pedir_una_respuesta(self, cliente, texto_peticion, funcion):
         self.peticiones[cliente] = funcion
@@ -52,19 +55,29 @@ class ConnectionManager:
 
 
     def enviar_mensaje(self, cliente, msg):
-        if self.accion_para_varios(cliente, lambda c: self.enviar_mensaje(c, msg)):
+        if self.__accion_para_varios(cliente, lambda c: self.enviar_mensaje(c, msg)):
             return
         self.__enviar_un_mensaje(cliente, msg)
 
     def pedir_eleccion(self, cliente, texto_peticion, elecciones, funciones):
-        if self.accion_para_varios(cliente, lambda c: self.pedir_eleccion(c, texto_peticion, elecciones, funciones)):
+        if self.__accion_para_varios(cliente, lambda c: self.pedir_eleccion(c, texto_peticion, elecciones, funciones)):
             return
         self.__pedir_una_eleccion(cliente, texto_peticion, elecciones, funciones)
 
     def pedir_respuesta(self, cliente, texto_peticion, funcion):
-        if self.accion_para_varios(cliente, lambda c: self.pedir_eleccion(c, texto_peticion, funcion)):
+        if self.__accion_para_varios(cliente, lambda c: self.pedir_eleccion(c, texto_peticion, funcion)):
             return
         self.__pedir_una_respuesta(cliente, texto_peticion, funcion)
+
+    def esperar_eleccion(self, cliente, texto_peticion, elecciones, respuestas):
+        self.pedir_eleccion(cliente, texto_peticion, elecciones, respuestas)
+        self.wait_until(lambda : self.peticiones[cliente] == None)
+        return self.elecciones.pop(len(self.elecciones) - 1)
+
+    def esperar_respuesta(self, cliente, texto_peticion):
+        self.pedir_respuesta(cliente, texto_peticion, lambda m, c: self.elecciones.append(m))
+        self.wait_until(lambda : self.peticiones[cliente] == None)
+        return self.elecciones.pop(len(self.elecciones) - 1)
 
 
     def on_message_recived(self, msg, type_of_msg: str, client: Cliente):

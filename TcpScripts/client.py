@@ -1,5 +1,6 @@
 import socket
-import pickle
+import dill as pickle
+#import pickle
 import threading
 import time
 import os

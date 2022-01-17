@@ -65,11 +65,15 @@ def on_message_recived(msg, type_of_msg):
         
     elif type_of_msg == "peticion":
         Interfaz.mostrarMensaje(msg)
-        enviar_mensaje(Interfaz.recibe_respuesta())
+        if nombre_jugador != None:
+            enviar_mensaje((Interfaz.recibe_respuesta(), nombre_jugador))
+        else:
+            enviar_mensaje(Interfaz.recibe_respuesta())
+
 
     elif type_of_msg == "eleccion":
-        func = Interfaz.espera_eleccion(msg[0], msg[1])
-        enviar_mensaje((func, nombre_jugador))
+        res = Interfaz.espera_eleccion(msg[0], msg[1])
+        enviar_mensaje((res, nombre_jugador))
 
 
 

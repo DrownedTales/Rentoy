@@ -31,6 +31,7 @@ def colocarla_boca_arriba(mano):
 def eleccion_carta(mano):
     #################################
     #con_man.pedir_eleccion(jugadores["ale"].cliente, "Elija su carta " + str(mano),tuple(mano), (lambda : colocarla_boca_arriba(mano)))
+    pass
 
 def boca_arriba(nombre_jugador, manos):
     mano = manos[nombre_jugador]
@@ -120,4 +121,28 @@ def start():
 
     print("Listos para empezar...")
 
-    game_loop()
+    
+    '''
+    #esperar_eleccion para el codigo hasta que el cliente responda y devuelve la opcion correspondiente a las opciones
+    print(con_man.esperar_eleccion(jugadores["ale"].cliente, "elige la mejor patata", ("de sanlucar", "no de sanlucar"), ("sipi", "este es tonto")))
+
+    #esperar_respuesta para el codigo hasta que el cliente responda y devuelve su respuesta
+    print(con_man.esperar_respuesta(jugadores["ale"].cliente, "dime algo guapo"))
+
+    #enviar_mensaje envia un mensaje al cliente
+    con_man.enviar_mensaje(jugadores["ale"].cliente, "tu ere tonto")
+
+    #pedir_eleccion no para el codigo. Cuando el cliente responda se llama a la funcion correspondiente a esa respuesta pasandole el nombre del jugador
+    con_man.pedir_eleccion(jugadores["ale"].cliente, "elige muerte o mas muerte", ("muerte", "tus muertos"),\
+        (lambda x : print(x + " dice muerte"), lambda x : print(x + " tus muertos pisaos")))
+    
+    #pedir_respuesta no para el codigo. Cuando el cliente responda se llama a la funcion pasandole la respuesta y el nombre del jugador
+    con_man.pedir_respuesta(jugadores["ale"].cliente, "dime puto", lambda x, c : print(x[1] + " dice que " + str(x[0])))
+
+
+    #ahora arregla lo de ayer que estaba dormido y no recuerdo ni lo que hicimos
+
+    '''
+
+
+    #game_loop()
