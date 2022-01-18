@@ -14,6 +14,19 @@ jugadores = dict()
 
 con_man : ConnectionManager = None
 
+dealer_index = 0
+
+cartas_juego = dict()
+
+equipos = dict()
+
+puntuaciones = dict()
+
+puntos = 1
+
+vira: Carta = None
+sec_vira : Carta = None
+
 def __get_clientes_de(jugadores):
     clientes = []
     for nombre in jugadores.keys():
@@ -25,22 +38,56 @@ def __establecer_jugador(nombre, cliente):
     jugadores[nombre] = Jugador(nombre, cliente)
     con_man.enviar_mensaje(cliente, ("set jugador", nombre))
 
-def colocarla_boca_arriba(mano):
-    pass
+def establecer_equipos(nombre_jugador, nombre_equipo):
+    if nombre_equipo in equipos.keys():
+        equipos[nombre_equipo].append(nombre_jugador)
+    else:
+        equipos[nombre_jugador] = [nombre_jugador]
+        puntuaciones[nombre_equipo] = 0
 
-def eleccion_carta(mano):
-    #################################
-    #con_man.pedir_eleccion(jugadores["ale"].cliente, "Elija su carta " + str(mano),tuple(mano), (lambda : colocarla_boca_arriba(mano)))
-    pass
+def ganar_puntos(puntos):
+    carta_max : Carta = None
+    for carta in cartas_juego.values():
+        contador = 0
+        for otra in cartas_juego.values():
+            if otra != carta:
+                if not carta.mayorq(otra):
+                    break
+                else:
+                    contador += 1
+        if contador == len(cartas_juego):
+            carta_max = carta
+            break
+    jugador = None
+    for i in cartas_juego.keys():
+        if cartas_juego[i] == carta_max:
+            jugador = i 
+            break
+    for i in equipos.keys():
+        if jugador in equipos[i]:
+            puntuaciones[i] = puntos
+            break
 
-def boca_arriba(nombre_jugador, manos):
-    mano = manos[nombre_jugador]
-    eleccion_carta(mano)
+def eleccion_carta(nombre_jugador, mano):
+    return con_man.esperar_eleccion(jugadores[nombre_jugador].cliente, "Elija su carta: ", tuple(mano), tuple(mano))
 
-def boca_abajo(nombre_jugador):
-    pass
+def boca_arriba(nombre_jugador, mano):
+    global cartas_juego
 
-def envio(nombre_jugador):
+    carta = eleccion_carta(nombre_jugador, mano)
+    mano.remove(carta)
+    cartas_juego[nombre_jugador] = carta
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), carta)
+
+    if sec_vira == None:
+        sec_vira = carta
+
+def boca_abajo(nombre_jugador, mano):
+    carta = eleccion_carta(nombre_jugador, mano)
+    mano.remove(carta)
+
+def envio(nombre_jugador, puntos):
+    puntos 
     pass
     
 
@@ -48,10 +95,30 @@ def comienzo_ronda(n_rondas):
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("resetear ronda", n_rondas + 1))
 
+    orden_jugadores = []
+    for e in range(2):
+        for i in equipos.values():
+            orden_jugadores.append(i[e])
+
     mazo = crear_mazo()
     manos = dict()
 
-    vira: Carta = sacar_carta_aleatoria(mazo)
+    global dealer_index
+    dealer_index += 1
+
+    global cartas_juego
+    cartas_juego = dict()
+
+    dealer = orden_jugadores[dealer_index]
+
+    global vira
+    vira = sacar_carta_aleatoria(mazo)
+
+    global sec_vira
+    sec_vira = None
+
+    global puntos
+    puntos = 1
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), vira)
 
@@ -73,11 +140,23 @@ def comienzo_ronda(n_rondas):
 
     Todo jugador que empiece la ronda deberá a la fuerza echar la carta boca arriba (Esto se debe a que no existe la 2ª carta que manda).
     '''
-    ### HACER COSAS ###
+    x = con_man.esperar_eleccion(jugadores[dealer].cliente, "Elija su opción (BOCA ARRIBA, ENVIO)", ("BOCA ARRIBA", "ENVIO"), ("a", "b"))
+    if x == "a":
+        boca_arriba(dealer, manos[dealer])
+    elif x == "b":
+        envio()
 
-    con_man.pedir_eleccion(jugadores["ale"].cliente, "Elija su opción (BOCA ARRIBA, ENVIO)",\
-        ("BOCA ARRIBA", "ENVIO"), (lambda x : boca_arriba(x, manos), envio))
+    for e in range(3):
+        jugador_q_le_toca = orden_jugadores[dealer_index+1+e]
+        x = con_man.esperar_eleccion(jugadores[jugador_q_le_toca].cliente, "Elija su opción (BOCA ARRIBA, BOCA ABAJO, ENVIO)", ("BOCA ARRIBA","BOCA ABAJO", "ENVIO"), ("a", "b", "c"))
+        if x == "a":
+            boca_arriba(jugador_q_le_toca, manos[jugador_q_le_toca])
+        elif x == "b":
+            boca_abajo(jugador_q_le_toca, manos[jugador_q_le_toca])
+        elif x == "c":
+            envio()
 
+    ganar_puntos(puntos)
 
 def comienzo_super_ronda():
     for i in range(3):
@@ -119,9 +198,16 @@ def start():
 
     con_man.stopAcceptingConnections()
 
+    nombre_equipos = [str(i) for i in range(int(len(jugadores)/2))]
+    respuestas = [lambda x : establecer_equipos(x, nombre_equipos[i]) for i in range(len(nombre_equipos))]
+
+    con_man.pedir_eleccion(__get_clientes_de(jugadores), "Elige EQUIPO : " + str(nombre_equipos), tuple(nombre_equipos),\
+         tuple(respuestas))
+
+    con_man.wait_until(lambda : len([len(i) for i in equipos.values()]) == len(jugadores))
+
     print("Listos para empezar...")
 
-    
     '''
     #esperar_eleccion para el codigo hasta que el cliente responda y devuelve la opcion correspondiente a las opciones
     print(con_man.esperar_eleccion(jugadores["ale"].cliente, "elige la mejor patata", ("de sanlucar", "no de sanlucar"), ("sipi", "este es tonto")))
@@ -143,6 +229,4 @@ def start():
     #ahora arregla lo de ayer que estaba dormido y no recuerdo ni lo que hicimos
 
     '''
-
-
-    #game_loop()
+    game_loop()
