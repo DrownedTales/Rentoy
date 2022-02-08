@@ -60,9 +60,9 @@ def on_message_recived(msg, type_of_msg):
                 Interfaz.start_game(msg[1], nombre_jugador)
             elif msg[0] == "set jugador":
                 set_jugador(msg[1])
-            elif msg[0] == "udpate waiting players":
+            elif msg[0] == "update waiting players":
                 Interfaz.waiting_players(msg[1], msg[2])
-            elif msg[0] == "udpate waiting teams":
+            elif msg[0] == "update waiting teams":
                 Interfaz.waiting_teams(msg[1])
         elif msg == "mostrar mano":
             mostrar_mano()

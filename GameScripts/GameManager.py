@@ -42,15 +42,16 @@ def __establecer_jugador(nombre, cliente):
         return
     jugadores[nombre] = Jugador(nombre, cliente)
     con_man.enviar_mensaje(cliente, ("set jugador", nombre))
-    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("udpate waiting players", tuple(jugadores.keys()), N_JUGADORES))
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("update waiting players", tuple(jugadores.keys()), N_JUGADORES))
 
 def establecer_equipos(nombre_jugador, nombre_equipo):
+    print(nombre_equipo, nombre_jugador)
     if nombre_equipo in equipos.keys():
         equipos[nombre_equipo].append(nombre_jugador)
     else:
-        equipos[nombre_jugador] = [nombre_jugador]
+        equipos[nombre_equipo] = [nombre_jugador]
         puntuaciones[nombre_equipo] = 0
-    con_man.enviar_mensaje(jugadores[nombre_jugador].cliente, ("udpate waiting teams", equipos))
+    con_man.enviar_mensaje(jugadores[nombre_jugador].cliente, ("update waiting teams", equipos))
 
 def ganar_puntos(puntos):
     carta_max : Carta = None
@@ -203,7 +204,7 @@ def start():
     
     #nombre_equipos = [str(i) for i in range(int(len(jugadores)/2))]
     nombre_equipos = [i for i in range(2)]
-    respuestas = [lambda x : establecer_equipos(x, nombre_equipos[i]) for i in range(len(nombre_equipos))]
+    respuestas = [(lambda x, i=i: establecer_equipos(x, nombre_equipos[i])) for i in range(len(nombre_equipos))]
 
     con_man.pedir_eleccion(__get_clientes_de(jugadores), "Elige equipo", tuple(nombre_equipos),\
          tuple(respuestas))
