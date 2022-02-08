@@ -46,8 +46,7 @@ class ConnectionManager:
 
     def __pedir_una_eleccion(self, cliente, texto_peticion, elecciones, funciones):
         self.peticiones[cliente] = self.__resolver_eleccion
-        self.enviar_mensaje(cliente, texto_peticion)
-        self.server.send_message(cliente, (elecciones, funciones), "eleccion")
+        self.server.send_message(cliente, (texto_peticion, elecciones, funciones), "eleccion")
 
     def __pedir_una_respuesta(self, cliente, texto_peticion, funcion):
         self.peticiones[cliente] = funcion

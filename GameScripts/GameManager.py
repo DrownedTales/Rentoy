@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), os.path.pardir)))
 from TcpScripts.connectionManager import ConnectionManager
@@ -8,7 +9,7 @@ from GameScripts.ClasePlayer import Jugador
 from GameScripts.CartaScripts.Mazo import *
 from GameScripts.Player import *
 
-N_JUGADORES = 1
+N_JUGADORES = 4
 
 jugadores = dict()
 
@@ -22,6 +23,8 @@ equipos = dict()
 
 puntuaciones = dict()
 
+orden_jugadores = []
+
 puntos = 1
 
 vira: Carta = None
@@ -34,9 +37,12 @@ def __get_clientes_de(jugadores):
     return clientes
 
 def __establecer_jugador(nombre, cliente):
-    print("nuevo jugador: " + nombre)
+    if nombre in jugadores.keys():
+        print("nombre en uso, prueba a reconectar con otro nombre")
+        return
     jugadores[nombre] = Jugador(nombre, cliente)
     con_man.enviar_mensaje(cliente, ("set jugador", nombre))
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("udpate waiting players", tuple(jugadores.keys()), N_JUGADORES))
 
 def establecer_equipos(nombre_jugador, nombre_equipo):
     if nombre_equipo in equipos.keys():
@@ -44,6 +50,7 @@ def establecer_equipos(nombre_jugador, nombre_equipo):
     else:
         equipos[nombre_jugador] = [nombre_jugador]
         puntuaciones[nombre_equipo] = 0
+    con_man.enviar_mensaje(jugadores[nombre_jugador].cliente, ("udpate waiting teams", equipos))
 
 def ganar_puntos(puntos):
     carta_max : Carta = None
@@ -94,11 +101,6 @@ def envio(nombre_jugador, puntos):
 def comienzo_ronda(n_rondas):
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("resetear ronda", n_rondas + 1))
-
-    orden_jugadores = []
-    for e in range(2):
-        for i in equipos.values():
-            orden_jugadores.append(i[e])
 
     mazo = crear_mazo()
     manos = dict()
@@ -189,7 +191,7 @@ def game_loop():
 def start():
     global con_man
     con_man = ConnectionManager()
-
+    
     con_man.beginAcceptingConnections(lambda client : con_man.pedir_respuesta(client, "Escriba su nombre:", __establecer_jugador))
 
     global jugadores
@@ -198,35 +200,54 @@ def start():
 
     con_man.stopAcceptingConnections()
 
-    nombre_equipos = [str(i) for i in range(int(len(jugadores)/2))]
+    
+    #nombre_equipos = [str(i) for i in range(int(len(jugadores)/2))]
+    nombre_equipos = [i for i in range(2)]
     respuestas = [lambda x : establecer_equipos(x, nombre_equipos[i]) for i in range(len(nombre_equipos))]
 
-    con_man.pedir_eleccion(__get_clientes_de(jugadores), "Elige EQUIPO : " + str(nombre_equipos), tuple(nombre_equipos),\
+    con_man.pedir_eleccion(__get_clientes_de(jugadores), "Elige equipo", tuple(nombre_equipos),\
          tuple(respuestas))
 
-    con_man.wait_until(lambda : len([len(i) for i in equipos.values()]) == len(jugadores))
+    con_man.wait_until(lambda : sum([len(i) for i in equipos.values()]) == len(jugadores))
+    
+
+    global orden_jugadores
+    for e in range(max([len(i) for i in equipos.values()])):
+        for i in equipos.values():
+            try:
+                orden_jugadores.append(i[e])
+            except:
+                pass
 
     print("Listos para empezar...")
 
-    '''
-    #esperar_eleccion para el codigo hasta que el cliente responda y devuelve la opcion correspondiente a las opciones
-    print(con_man.esperar_eleccion(jugadores["ale"].cliente, "elige la mejor patata", ("de sanlucar", "no de sanlucar"), ("sipi", "este es tonto")))
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("start game", orden_jugadores))
 
-    #esperar_respuesta para el codigo hasta que el cliente responda y devuelve su respuesta
-    print(con_man.esperar_respuesta(jugadores["ale"].cliente, "dime algo guapo"))
-
-    #enviar_mensaje envia un mensaje al cliente
-    con_man.enviar_mensaje(jugadores["ale"].cliente, "tu ere tonto")
-
-    #pedir_eleccion no para el codigo. Cuando el cliente responda se llama a la funcion correspondiente a esa respuesta pasandole el nombre del jugador
-    con_man.pedir_eleccion(jugadores["ale"].cliente, "elige muerte o mas muerte", ("muerte", "tus muertos"),\
-        (lambda x : print(x + " dice muerte"), lambda x : print(x + " tus muertos pisaos")))
     
-    #pedir_respuesta no para el codigo. Cuando el cliente responda se llama a la funcion pasandole la respuesta y el nombre del jugador
-    con_man.pedir_respuesta(jugadores["ale"].cliente, "dime puto", lambda x, c : print(x[1] + " dice que " + str(x[0])))
+
+    #game_loop()
 
 
-    #ahora arregla lo de ayer que estaba dormido y no recuerdo ni lo que hicimos
 
-    '''
-    game_loop()
+
+'''
+#esperar_eleccion para el codigo hasta que el cliente responda y devuelve la opcion correspondiente a las opciones
+print(con_man.esperar_eleccion(jugadores["ale"].cliente, "elige la mejor patata", ("de sanlucar", "no de sanlucar"), ("sipi", "este es tonto")))
+
+#esperar_respuesta para el codigo hasta que el cliente responda y devuelve su respuesta
+print(con_man.esperar_respuesta(jugadores["ale"].cliente, "dime algo guapo"))
+
+#enviar_mensaje envia un mensaje al cliente
+con_man.enviar_mensaje(jugadores["ale"].cliente, "tu ere tonto")
+
+#pedir_eleccion no para el codigo. Cuando el cliente responda se llama a la funcion correspondiente a esa respuesta pasandole el nombre del jugador
+con_man.pedir_eleccion(jugadores["ale"].cliente, "elige muerte o mas muerte", ("muerte", "tus muertos"),\
+    (lambda x : print(x + " dice muerte"), lambda x : print(x + " tus muertos pisaos")))
+
+#pedir_respuesta no para el codigo. Cuando el cliente responda se llama a la funcion pasandole la respuesta y el nombre del jugador
+con_man.pedir_respuesta(jugadores["ale"].cliente, "dime puto", lambda x, c : print(x[1] + " dice que " + str(x[0])))
+
+
+#ahora arregla lo de ayer que estaba dormido y no recuerdo ni lo que hicimos
+
+'''

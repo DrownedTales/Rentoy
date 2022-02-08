@@ -56,14 +56,21 @@ def on_message_recived(msg, type_of_msg):
         elif isinstance(msg, tuple):
             if msg[0] == "resetear ronda":
                 reset_ronda(msg[1])
+            elif msg[0] == "start game":
+                Interfaz.start_game(msg[1], nombre_jugador)
             elif msg[0] == "set jugador":
                 set_jugador(msg[1])
+            elif msg[0] == "udpate waiting players":
+                Interfaz.waiting_players(msg[1], msg[2])
+            elif msg[0] == "udpate waiting teams":
+                Interfaz.waiting_teams(msg[1])
         elif msg == "mostrar mano":
             mostrar_mano()
         else:
             Interfaz.mostrarMensaje("Game Manager: " + str(msg))
         
     elif type_of_msg == "peticion":
+        Interfaz.clear_window()
         Interfaz.mostrarMensaje(msg)
         if nombre_jugador != None:
             enviar_mensaje((Interfaz.recibe_respuesta(), nombre_jugador))
@@ -72,7 +79,9 @@ def on_message_recived(msg, type_of_msg):
 
 
     elif type_of_msg == "eleccion":
-        res = Interfaz.espera_eleccion(msg[0], msg[1])
+        Interfaz.clear_window()
+        Interfaz.mostrarMensaje(msg[0])
+        res = Interfaz.espera_eleccion(msg[1], msg[2])
         enviar_mensaje((res, nombre_jugador))
 
 
