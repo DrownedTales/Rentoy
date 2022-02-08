@@ -10,6 +10,7 @@ CARD_SIZE = 150
 MY_CARD_SIZE = 200
 HAND_FRAME_HEIGHT = 100
 BACK_CARD_URL = "Images/test3.png"
+BUTTON_IMG = "Images/buttontest1.png"
 CARD_OFFSET = 30
 MY_CARD_OFFSET = 100
 BUTTON_FONT = ("Alice in Wonderland", 40)
@@ -30,6 +31,13 @@ def clear_window():
     images.clear()
     for i in _root.winfo_children():
         i.destroy()
+
+def make_button(base, _text, text_color, img_path, id, anim_func):
+    img = ImageTk.PhotoImage(file=img_path)
+    images[id] = img
+    return tkinter.Button(base, fg=text_color, text=_text, image=img, command=anim_func, compound=tkinter.CENTER, \
+        highlightthickness=0, bd=0, relief=tkinter.SUNKEN, activeforeground=text_color, font=BUTTON_FONT)
+
 
 def draw_image(img_url, size, pos, rot, id):
     img= (Image.open(img_url))
@@ -72,22 +80,25 @@ def espera_eleccion(parametros, funciones):
     buttons = []
     frame = tkinter.Frame(_root)
     frame.pack()
+
     for i in range(len(parametros)):
-        button = tkinter.Button(frame, bg="#2f3ff4", fg="#FFFFFF", text=parametros[i],\
-            command=lambda : button_call(i), font=("Alice in Wonderland", 40))
+        button = make_button(frame, parametros[i], "#FFFFFF", BUTTON_IMG, "eleccion" + str(i), lambda i=i: button_call(i))
         button.pack(side=tkinter.LEFT, fill=tkinter.X, padx=20)
         buttons.append(button)
 
     while button_guard == False:
         sleep(0.05)
 
+    print("aaaaaaaaaaaaa", index_eleccion)
+    print(funciones)
+    print(funciones[index_eleccion])
     return funciones[index_eleccion]
 
 def recibe_respuesta():
     input_box = tkinter.Entry(_root, font=("Alice in Wonderland", 40))
     input_box.pack(pady=20)
 
-    button = tkinter.Button(_root, bg="#2f3ff4", fg="#FFFFFF", text="aceptar", command=button_call, font=("Alice in Wonderland", 40))
+    button = make_button(_root, "aceptar", "#FFFFFF", BUTTON_IMG, "accept", button_call)
     button.pack(pady=20)
     while button_guard == False:
         sleep(0.05)
@@ -148,14 +159,8 @@ def start_game(players, player_name):
 
 def connection_screen(functions):
     clear_window()
-    img1 = ImageTk.PhotoImage(file="Images/buttontest1.png")
-    img2 = ImageTk.PhotoImage(file="Images/buttontest1.png")
-    images["a"] = img1
-    images["b"] = img2
-    button1 = tkinter.Button(_root, fg="#FFFFFF", text="CONECTAR", image=img1, command=functions[0], compound=tkinter.CENTER, \
-        highlightthickness=0, bd=0, relief=tkinter.SUNKEN, activeforeground="#FFFFFF", font=BUTTON_FONT)
-    button2 = tkinter.Button(_root, fg="#FFFFFF", text="CREAR SALA", image=img2, command=functions[1], compound=tkinter.CENTER, \
-        highlightthickness=0, bd=0, relief=tkinter.SUNKEN, activeforeground="#FFFFFF", font=BUTTON_FONT)
+    button1 = make_button(_root, "CONECTAR", "#FFFFFF", BUTTON_IMG, "connect button", functions[0])
+    button2 = make_button(_root, "CREAR SALA", "#FFFFFF", BUTTON_IMG, "crear button", functions[1])
     button1.place(rely=0.25, relx=0.5, relheight=0.2, relwidth=0.75, anchor=tkinter.CENTER)
     button2.place(rely=0.75, relx=0.5, relheight=0.2, relwidth=0.75, anchor=tkinter.CENTER)
 
@@ -164,9 +169,17 @@ def waiting_players(jugadores, total_jugadores):
     mostrarMensaje("Esperando jugadores: " + str(len(jugadores)) + " / " + str(total_jugadores))
     for i in jugadores:
         mostrarMensaje(i)
-        
+
 def waiting_teams(equipos):
     clear_window()
     mostrarMensaje("Esperando equipos:")
+    f = tkinter.Frame(_root)
+    f.pack()
     for i in equipos.keys():
-        mostrarMensaje(i)
+        frame = tkinter.Frame(f)
+        frame.pack(side=tkinter.LEFT, padx=20, anchor=tkinter.N)
+        l = tkinter.Label(frame, text=i, font=TITLE_FONT)
+        l.pack()
+        for e in equipos[i]:
+            a = tkinter.Label(frame, text=e, font=BASIC_FONT)
+            a.pack()
