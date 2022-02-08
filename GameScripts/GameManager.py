@@ -52,17 +52,33 @@ def establecer_equipos(nombre_jugador, nombre_equipo):
         puntuaciones[nombre_equipo] = 0
     con_man.enviar_mensaje(jugadores[nombre_jugador].cliente, ("udpate waiting teams", equipos))
 
+def __get_order_carta(carta):
+    for i in cartas_juego.keys():
+        if cartas_juego[i] == carta:
+            jugador = i 
+            break
+    orden = enumerate(orden_jugadores)
+    for o,v in orden:
+        if v == jugador:
+            orden_jugador = o
+
+    orden_jugador += len(orden_jugadores)
+    orden_jugador -= dealer_index
+    orden_jugador = orden_jugador%len(orden_jugadores)
+
+    return orden_jugador
+
 def ganar_puntos(puntos):
     carta_max : Carta = None
     for carta in cartas_juego.values():
         contador = 0
         for otra in cartas_juego.values():
             if otra != carta:
-                if not carta.mayorq(otra):
+                if not carta.mayorq(vira, sec_vira, otra, __get_order_carta(carta), __get_order_carta(otra)):
                     break
                 else:
                     contador += 1
-        if contador == len(cartas_juego):
+        if contador == (len(cartas_juego)-1):
             carta_max = carta
             break
     jugador = None
@@ -72,7 +88,7 @@ def ganar_puntos(puntos):
             break
     for i in equipos.keys():
         if jugador in equipos[i]:
-            puntuaciones[i] = puntos
+            puntuaciones[i] += puntos
             break
 
 def eleccion_carta(nombre_jugador, mano):
@@ -161,7 +177,7 @@ def comienzo_ronda(n_rondas):
     ganar_puntos(puntos)
 
 def comienzo_super_ronda():
-    for i in range(3):
+    for i in range(1,4):
         comienzo_ronda(i)
 
 def comienzo_sprint_final():
@@ -225,7 +241,7 @@ def start():
 
     
 
-    #game_loop()
+    game_loop()
 
 
 
