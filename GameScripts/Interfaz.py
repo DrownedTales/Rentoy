@@ -26,6 +26,7 @@ main_canvas = None
 _root = None
 player_pos = dict()
 events = Events()
+popup = None
 
 button_guard = False
 index_eleccion = None
@@ -33,7 +34,8 @@ index_eleccion = None
 def clear_window():
     images.clear()
     for i in _root.winfo_children():
-        i.destroy()
+        if i != popup:
+            i.destroy()
 
 def make_button(base, _text, text_color, img_path, id, anim_func):
     if img_path != None:
@@ -44,16 +46,19 @@ def make_button(base, _text, text_color, img_path, id, anim_func):
     return tkinter.Button(base, fg=text_color, text=_text, image=img, command=anim_func, compound=tkinter.CENTER, \
         highlightthickness=0, bd=0, relief=tkinter.SUNKEN, activeforeground=text_color, font=BUTTON_FONT, cursor="hand2")
 
-def __on_popup_close(popup, func):
+def __on_popup_close(func):
+    global popup
     popup.destroy()
-    func()
+    if func != None:
+        func()
 
 def make_error_popup(parametro, func):
+    global popup
     popup = tkinter.Toplevel()
     l = tkinter.Label(popup, text=parametro, font=BASIC_FONT)
     l.pack(pady=20)
-    popup.protocol("WM_DELETE_WINDOW", lambda: __on_popup_close(popup, func))
-    button = make_button(popup, "Aceptar", "#FFFFFF", None, None, lambda: __on_popup_close(popup, func))
+    popup.protocol("WM_DELETE_WINDOW", lambda: __on_popup_close(func))
+    button = make_button(popup, "Aceptar", "#FFFFFF", None, None, lambda: __on_popup_close(func))
     button.config(bg="blue")
     button.pack()
 

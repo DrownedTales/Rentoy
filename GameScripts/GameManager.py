@@ -10,6 +10,7 @@ from GameScripts.CartaScripts.Mazo import *
 from GameScripts.Player import *
 
 N_JUGADORES = 4
+N_EQUIPOS = 2
 
 jugadores = dict()
 
@@ -50,6 +51,10 @@ def __establecer_jugador(nombre, cliente):
 def establecer_equipos(nombre_jugador, nombre_equipo):
     print(nombre_equipo, nombre_jugador)
     if nombre_equipo in equipos.keys():
+        if len(equipos[nombre_equipo]) >= N_JUGADORES/N_EQUIPOS:
+                con_man.enviar_mensaje(jugadores[nombre_jugador].cliente, ("error", "ese equipo ya está lleno", None))
+                pedir_equipos(jugadores[nombre_jugador].cliente)
+                return
         equipos[nombre_equipo].append(nombre_jugador)
     else:
         equipos[nombre_equipo] = [nombre_jugador]
@@ -207,6 +212,13 @@ def game_loop():
         while puntuacion1 < 30 or puntuacion2 < 30:
             comienzo_quiero()
 
+def pedir_equipos(clientes):
+    #nombre_equipos = [str(i) for i in range(int(len(jugadores)/2))]
+    nombre_equipos = [i for i in range(N_EQUIPOS)]
+    respuestas = [(lambda x, i=i: establecer_equipos(x, nombre_equipos[i])) for i in range(len(nombre_equipos))]
+
+    con_man.pedir_eleccion(clientes, "Elige equipo", tuple(nombre_equipos), tuple(respuestas))
+
 
 def start():
     global con_man
@@ -220,13 +232,7 @@ def start():
 
     con_man.stopAcceptingConnections()
 
-    
-    #nombre_equipos = [str(i) for i in range(int(len(jugadores)/2))]
-    nombre_equipos = [i for i in range(2)]
-    respuestas = [(lambda x, i=i: establecer_equipos(x, nombre_equipos[i])) for i in range(len(nombre_equipos))]
-
-    con_man.pedir_eleccion(__get_clientes_de(jugadores), "Elige equipo", tuple(nombre_equipos),\
-         tuple(respuestas))
+    pedir_equipos(__get_clientes_de(jugadores))
 
     con_man.wait_until(lambda : sum([len(i) for i in equipos.values()]) == len(jugadores))
     
