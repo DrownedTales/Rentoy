@@ -37,12 +37,15 @@ def __get_clientes_de(jugadores):
     return clientes
 
 def __establecer_jugador(nombre, cliente):
+    print("llama", nombre, cliente)
     if nombre in jugadores.keys():
-        print("nombre en uso, prueba a reconectar con otro nombre")
+        con_man.enviar_mensaje(cliente, ("error", "ese nombre ya esta en uso", Interfaz.connection_screen))
+        con_man.server.close_connection(cliente)
         return
     jugadores[nombre] = Jugador(nombre, cliente)
     con_man.enviar_mensaje(cliente, ("set jugador", nombre))
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("update waiting players", tuple(jugadores.keys()), N_JUGADORES))
+    print("jugadores", jugadores.keys())
 
 def establecer_equipos(nombre_jugador, nombre_equipo):
     print(nombre_equipo, nombre_jugador)
@@ -51,7 +54,7 @@ def establecer_equipos(nombre_jugador, nombre_equipo):
     else:
         equipos[nombre_equipo] = [nombre_jugador]
         puntuaciones[nombre_equipo] = 0
-    con_man.enviar_mensaje(jugadores[nombre_jugador].cliente, ("update waiting teams", equipos))
+    con_man.enviar_mensaje([jugadores[i].cliente for a in equipos.values() for i in a], ("update waiting teams", equipos))
 
 def __get_order_carta(carta):
     for i in cartas_juego.keys():

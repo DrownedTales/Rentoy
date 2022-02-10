@@ -89,8 +89,8 @@ class ConnectionManager:
         pass
 
     def on_client_connect(self, client: Cliente):
+        print("hola", client)
         self.on_client_connect_func(client)
-
 
     def beginAcceptingConnections(self, func):
         self.on_client_connect_func = func

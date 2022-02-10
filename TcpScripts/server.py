@@ -32,8 +32,9 @@ class Server:
         self.accepting = False
 
     def close_connection(self, client: Cliente):
-        self.clientes.remove(client)
+        print("closed", client.socket)
         client.socket.close()
+        self.clientes.remove(client)
 
     def send_message(self, client: Cliente, msg, type_of_msg):
         if type_of_msg not in self.types_of_msgs:
@@ -59,7 +60,6 @@ class Server:
             except:
                 if client in self.clientes: #se desconecto el
                     self.events.onClientExit(client)
-                self.close_connection(client)
                 break
 
             if len(packet) <= 0:

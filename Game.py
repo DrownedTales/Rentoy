@@ -1,3 +1,4 @@
+import sys
 from time import sleep
 import GameScripts.Interfaz as Interfaz
 
@@ -7,6 +8,11 @@ import GameScripts.GameManager as GameManager
 
 import threading
 
+end: bool = False
+
+def end_exec():
+    global end
+    end = True
 
 def conectarse():
 
@@ -16,19 +22,24 @@ def conectarse():
 def crear_sala():
 
     thread = threading.Thread(target=GameManager.start)
-
+    thread.daemon = True
     thread.start()
 
     Player.start()
 
 thread1 = threading.Thread(target=Interfaz.main_loop)
+thread1.daemon = True
 thread1.start()
 
 sleep(0.1)
+Interfaz.events.on_close += end_exec
+Interfaz.events.on_create += crear_sala
+Interfaz.events.on_connect += conectarse
 
-Interfaz.connection_screen((conectarse, crear_sala))
+Interfaz.connection_screen()
 
-#Interfaz.mostrarMensaje("Elige CONECTARSE o CREAR SALA.")
-#Interfaz.espera_eleccion(["CONECTARSE", "CREAR SALA"], [conectarse, crear_sala])()
-while True:
+while not end:
     sleep(0.1)
+
+print("dfskjdfsjk")
+sys.exit()

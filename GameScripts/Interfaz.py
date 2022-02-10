@@ -1,9 +1,11 @@
+from asyncio import events
 from time import sleep
 import tkinter
 from PIL import ImageTk, Image
 import os
 
 from GameScripts.CartaScripts.Carta import Carta
+from events import Events
 
 WINDOW_SIZE = (1080, 720)
 CARD_SIZE = 150
@@ -23,6 +25,7 @@ images = dict()
 main_canvas = None
 _root = None
 player_pos = dict()
+events = Events()
 
 button_guard = False
 index_eleccion = None
@@ -33,10 +36,26 @@ def clear_window():
         i.destroy()
 
 def make_button(base, _text, text_color, img_path, id, anim_func):
-    img = ImageTk.PhotoImage(file=img_path)
-    images[id] = img
+    if img_path != None:
+        img = ImageTk.PhotoImage(file=img_path)
+        images[id] = img
+    else:
+        img = None
     return tkinter.Button(base, fg=text_color, text=_text, image=img, command=anim_func, compound=tkinter.CENTER, \
-        highlightthickness=0, bd=0, relief=tkinter.SUNKEN, activeforeground=text_color, font=BUTTON_FONT)
+        highlightthickness=0, bd=0, relief=tkinter.SUNKEN, activeforeground=text_color, font=BUTTON_FONT, cursor="hand2")
+
+def __on_popup_close(popup, func):
+    popup.destroy()
+    func()
+
+def make_error_popup(parametro, func):
+    popup = tkinter.Toplevel()
+    l = tkinter.Label(popup, text=parametro, font=BASIC_FONT)
+    l.pack(pady=20)
+    popup.protocol("WM_DELETE_WINDOW", lambda: __on_popup_close(popup, func))
+    button = make_button(popup, "Aceptar", "#FFFFFF", None, None, lambda: __on_popup_close(popup, func))
+    button.config(bg="blue")
+    button.pack()
 
 
 def draw_image(img_url, size, pos, rot, id):
@@ -78,20 +97,15 @@ def button_call(index = None): #si, ya se que esto es una chapuza. son las 3 y t
 
 def espera_eleccion(parametros, funciones):
     buttons = []
-    frame = tkinter.Frame(_root)
-    frame.pack()
-
     for i in range(len(parametros)):
-        button = make_button(frame, parametros[i], "#FFFFFF", BUTTON_IMG, "eleccion" + str(i), lambda i=i: button_call(i))
-        button.pack(side=tkinter.LEFT, fill=tkinter.X, padx=20)
+        button = make_button(_root, parametros[i], "#FFFFFF", BUTTON_IMG, "eleccion" + str(i), lambda i=i: button_call(i))
+        button.config(width=(WINDOW_SIZE[0]/len(parametros)-30))
+        button.pack(side=tkinter.LEFT, padx=20, expand=1, fill=tkinter.X, anchor=tkinter.N)
         buttons.append(button)
 
     while button_guard == False:
         sleep(0.05)
 
-    print("aaaaaaaaaaaaa", index_eleccion)
-    print(funciones)
-    print(funciones[index_eleccion])
     return funciones[index_eleccion]
 
 def recibe_respuesta():
@@ -100,9 +114,14 @@ def recibe_respuesta():
 
     button = make_button(_root, "aceptar", "#FFFFFF", BUTTON_IMG, "accept", button_call)
     button.pack(pady=20)
+
+    id = _root.bind('<Return>', button_call)
+    
     while button_guard == False:
         sleep(0.05)
     var = input_box.get()
+
+    _root.unbind('<Return>', id)
     return var
 
 
@@ -115,11 +134,14 @@ def main_loop():
     _root = root
     _root.geometry(str(WINDOW_SIZE[0])+"x"+str(WINDOW_SIZE[1]))
 
+    _root.protocol("WM_DELETE_WINDOW", events.on_close)
+
     #cosas de menus
 
     root.mainloop()
 
 def start_game(players, player_name):
+    clear_window()
     print("iniciando pantalla de juego")
     #canvas
     canvas = tkinter.Canvas(_root, height=WINDOW_SIZE[1], width=WINDOW_SIZE[0])
@@ -157,10 +179,10 @@ def start_game(players, player_name):
     for i in range(rest):
         player_pos[order[i]] = ((WINDOW_SIZE[0] - 30, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/max_n), 90)
 
-def connection_screen(functions):
+def connection_screen():
     clear_window()
-    button1 = make_button(_root, "CONECTAR", "#FFFFFF", BUTTON_IMG, "connect button", functions[0])
-    button2 = make_button(_root, "CREAR SALA", "#FFFFFF", BUTTON_IMG, "crear button", functions[1])
+    button1 = make_button(_root, "CONECTAR", "#FFFFFF", BUTTON_IMG, "connect button", events.on_connect)
+    button2 = make_button(_root, "CREAR SALA", "#FFFFFF", BUTTON_IMG, "crear button", events.on_create)
     button1.place(rely=0.25, relx=0.5, relheight=0.2, relwidth=0.75, anchor=tkinter.CENTER)
     button2.place(rely=0.75, relx=0.5, relheight=0.2, relwidth=0.75, anchor=tkinter.CENTER)
 
@@ -173,11 +195,9 @@ def waiting_players(jugadores, total_jugadores):
 def waiting_teams(equipos):
     clear_window()
     mostrarMensaje("Esperando equipos:")
-    f = tkinter.Frame(_root)
-    f.pack()
     for i in equipos.keys():
-        frame = tkinter.Frame(f)
-        frame.pack(side=tkinter.LEFT, padx=20, anchor=tkinter.N)
+        frame = tkinter.Frame(_root, width=(WINDOW_SIZE[0]/len(equipos.keys())-30))
+        frame.pack(side=tkinter.LEFT, padx=20, anchor=tkinter.N, fill=tkinter.X, expand=1)
         l = tkinter.Label(frame, text=i, font=TITLE_FONT)
         l.pack()
         for e in equipos[i]:

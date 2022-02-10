@@ -1,3 +1,4 @@
+from time import sleep
 from GameScripts import Interfaz
 
 import os
@@ -11,6 +12,7 @@ from GameScripts.CartaScripts.Carta import *
 from GameScripts.ClasePlayer import Jugador
 
 cliente : Client = None
+running: bool = False
 
 mano = []
 vira : Carta = None
@@ -46,6 +48,7 @@ def on_server_close():
     Interfaz.mostrarMensaje("el servidor se ha cerrado")
 
 def on_message_recived(msg, type_of_msg):
+    print("recived", msg)
     if type_of_msg == "data":
         #hace falta diferenciar entre carta y vira. Tarea para ti pablo. No tienes que tocar nada de lo que hay en TCP
         if isinstance(msg, Carta):
@@ -54,7 +57,11 @@ def on_message_recived(msg, type_of_msg):
             else:
                 add_carta_vira(msg)
         elif isinstance(msg, tuple):
-            if msg[0] == "resetear ronda":
+            if msg[0] == "error":
+                Interfaz.make_error_popup(msg[1], msg[2])
+            elif msg[0] == "clear window":
+                Interfaz.clear_window()
+            elif msg[0] == "resetear ronda":
                 reset_ronda(msg[1])
             elif msg[0] == "start game":
                 Interfaz.start_game(msg[1], nombre_jugador)
@@ -88,7 +95,13 @@ def on_message_recived(msg, type_of_msg):
 
 def start():
     global cliente
+    global running
+    if running:
+        cliente.close_connection()
     cliente = Client()
 
-    cliente.events.on_server_close += on_server_close
-    cliente.events.on_message_recived += on_message_recived
+    if not running:
+        cliente.events.on_server_close += on_server_close
+        cliente.events.on_message_recived += on_message_recived
+
+    running = True
