@@ -4,13 +4,12 @@ import tkinter
 from PIL import ImageTk, Image
 import os
 
-from GameScripts.CartaScripts.Carta import Carta
 from events import Events
 
 WINDOW_SIZE = (1080, 720)
 CARD_SIZE = 150
-MY_CARD_SIZE = 200
-HAND_FRAME_HEIGHT = 100
+MY_CARD_SIZE = 250
+HAND_FRAME_HEIGHT = 150
 BACK_CARD_URL = "Images/test3.png"
 BUTTON_IMG = "Images/buttontest1.png"
 CARD_OFFSET = 30
@@ -18,6 +17,7 @@ MY_CARD_OFFSET = 100
 BUTTON_FONT = ("Alice in Wonderland", 40)
 TITLE_FONT = ("Alice in Wonderland", 40)
 BASIC_FONT = ("Alice in Wonderland", 40)
+WINDOW_CARD_MARGIN = 50
 
 #prevents images being garbage collected
 #ya podria hacerlo el puto tkinter, llevo tres horas para averiguar por que no funcionaba esta mierda
@@ -71,14 +71,18 @@ def draw_image(img_url, size, pos, rot, id):
     images[id] = one
     main_canvas.create_image(pos[0], pos[1], image=one, tag=id)    
 
-def draw_hand_card(card: Carta, player_name):
-    n = len([i for i in images.keys() if player_name in i])
-    draw_image("Images/" + card.to_string() + ".png", MY_CARD_SIZE,\
-        ((WINDOW_SIZE[0]/2) - CARD_OFFSET + (CARD_OFFSET*n), WINDOW_SIZE[1] - (HAND_FRAME_HEIGHT/2)),\
-            0, player_name + " " + card.to_string())
+def draw_hand_card(card_path, player_name):
+    n = len([i for i in images.keys() if player_name == i])
+    print("images keys", images.keys())
+    draw_image("Images/" + card_path + ".png", MY_CARD_SIZE,\
+        ((WINDOW_SIZE[0]/2) - MY_CARD_OFFSET + (MY_CARD_OFFSET*n), WINDOW_SIZE[1] - (HAND_FRAME_HEIGHT/2)),\
+            0, player_name + " " + card_path)
+
+def draw_vira(card_path):
+    draw_image("Images/" + card_path + ".png", CARD_SIZE, (WINDOW_SIZE[0]*0.3, WINDOW_SIZE[1]/2), 0, "vira")
 
 def draw_hidden_card(player_name):
-    n = len([i for i in images.keys() if player_name in i])
+    n = len([i for i in images.keys() if player_name == i])
     if player_pos[player_name][1] == 90:
         pos = (player_pos[player_name][0][0], player_pos[player_name][0][1] + CARD_OFFSET*n)
     elif player_pos[player_name][1] == 180:
@@ -89,7 +93,7 @@ def draw_hidden_card(player_name):
     draw_image(BACK_CARD_URL, CARD_SIZE, pos, player_pos[player_name][1], player_name + " " + str(n))
 
 def mostrarMensaje(parametro):
-    l = tkinter.Label(_root, text=parametro, font=("Alice in Wonderland", 40))
+    l = tkinter.Label(_root, text=parametro, font=BASIC_FONT)
     l.pack(pady=20)
 
 def button_call(index = None): #si, ya se que esto es una chapuza. son las 3 y tengo sueño dejame
@@ -171,18 +175,26 @@ def start_game(players, player_name):
     for i in players[:index]:
         order.append(i)
 
-    max_n = int(len(order)/3)
-    rest = len(order) % 3
+    #estoy convencidisimo de que hay una forma mil veces mas eficiente de hacer esto. Dicho lo cual, no creo que tu ordenador vaya
+    #a petar por jugar al rentoy
+    side_left = []
+    side_right = []
+    side_top = []
     for i in range(len(order)):
-        if i < max_n*2:
-            if i < max_n:
-                player_pos[order[i]] = ((30, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/max_n), 270)
-            else:
-                player_pos[order[i]] = (((WINDOW_SIZE[0])/max_n, 30), 180)
-        else:
-            break
-    for i in range(rest):
-        player_pos[order[i]] = ((WINDOW_SIZE[0] - 30, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/max_n), 90)
+            if i % 3 == 0:
+                side_left.append(i)
+            elif i % 3  == 1:
+                side_right.append(i)
+            elif i % 3 == 2:
+                side_top.append(i)
+    for i in range(len(order)):
+            if i % 3 == 0:
+                player_pos[order[i]] = ((WINDOW_CARD_MARGIN, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_left)+1)), 270)
+            elif i % 3  == 1:
+                player_pos[order[i]] = (((WINDOW_SIZE[0])/(len(side_top)+1), WINDOW_CARD_MARGIN), 180)
+            elif i % 3 == 2:
+                player_pos[order[i]] = ((WINDOW_SIZE[0] - WINDOW_CARD_MARGIN, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_right)+1)), 90)
+    print(player_pos)
 
 def connection_screen():
     clear_window()

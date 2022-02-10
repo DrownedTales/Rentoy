@@ -147,17 +147,22 @@ def comienzo_ronda(n_rondas):
     global puntos
     puntos = 1
 
-    con_man.enviar_mensaje(__get_clientes_de(jugadores), vira)
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("set vira", vira))
 
     for i in jugadores.keys():
         for e in range(n_rondas):
             carta = sacar_carta_aleatoria(mazo)
-            con_man.enviar_mensaje(jugadores[i].cliente, carta)
-            clave = jugadores[i].nombre
+            print("sending to", i)
+            con_man.enviar_mensaje(jugadores[i].cliente, ("add player card", carta))
+            con_man.enviar_mensaje(__get_clientes_de(jugadores), ("add card", i))
+            clave = jugadores[i].name
             if clave not in manos:
                 manos[clave] = [carta]
             else:
                 manos[clave].append(carta)
+            sleep(1)
+
+    sleep(10000)
             
     '''
     Tenemos 3 opciones:
@@ -202,8 +207,8 @@ def turnos(parametro):
 def game_loop():
     while True:
 
-        puntuacion1 = 0
-        puntuacion2 = 0
+        puntuacion1 = puntuaciones[list(equipos.keys())[0]]
+        puntuacion2 = puntuaciones[list(equipos.keys())[1]]
 
         while puntuacion1 < 21 or puntuacion2 < 21:
             comienzo_super_ronda()
@@ -249,7 +254,7 @@ def start():
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("start game", orden_jugadores))
 
-    
+    sleep(1)
 
     game_loop()
 
