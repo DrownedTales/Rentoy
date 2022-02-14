@@ -22,8 +22,8 @@ def add_carta_mano(carta: Carta):
     mano.append(carta)
     #Interfaz.draw_hand_card(carta.to_string(), nombre_jugador)
     #lo de arriba es el final, esto es provisional
-    Interfaz.draw_hand_card("test4", nombre_jugador)
-    print("add carta to mano", nombre_jugador)
+    Interfaz.draw_hand_card("test4")
+    print("add carta to mano")
 
 def add_carta_vira(carta: Carta):
     global vira
@@ -106,10 +106,16 @@ def on_message_recived(msg, type_of_msg):
 
 
     elif type_of_msg == "eleccion":
-        Interfaz.clear_window()
-        Interfaz.mostrarMensaje(msg[0])
-        res = Interfaz.espera_eleccion(msg[1], msg[2])
-        enviar_mensaje((res, nombre_jugador))
+        if msg[0] == "ACTION":
+            enviar_mensaje((Interfaz.choose_action(msg[1], msg[2]), nombre_jugador))
+        elif msg[0] == "CARD":
+            card_name: str = Interfaz.select_hand_card()
+            enviar_mensaje((Carta(card_name.split(" ")[0], card_name.split(" ")[2]), nombre_jugador))
+        else:
+            Interfaz.clear_window()
+            Interfaz.mostrarMensaje(msg[0])
+            res = Interfaz.espera_eleccion(msg[1], msg[2])
+            enviar_mensaje((res, nombre_jugador))
 
 
 

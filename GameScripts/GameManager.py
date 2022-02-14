@@ -11,6 +11,7 @@ from GameScripts.Player import *
 
 N_JUGADORES = 4
 N_EQUIPOS = 2
+TIME_BETWEEN_CARDS = 0.5
 
 jugadores = dict()
 
@@ -37,6 +38,7 @@ def __get_clientes_de(jugadores):
         clientes.append(jugadores[nombre].cliente)
     return clientes
 
+#hacer que el nombre tenga que ser al menos 3 letras
 def __establecer_jugador(nombre, cliente):
     print("llama", nombre, cliente)
     if nombre in jugadores.keys():
@@ -101,7 +103,7 @@ def ganar_puntos(puntos):
             break
 
 def eleccion_carta(nombre_jugador, mano):
-    return con_man.esperar_eleccion(jugadores[nombre_jugador].cliente, "Elija su carta: ", tuple(mano), tuple(mano))
+    return con_man.esperar_eleccion(jugadores[nombre_jugador].cliente, "CARD", tuple(mano), tuple(mano))
 
 def boca_arriba(nombre_jugador, mano):
     global cartas_juego
@@ -148,6 +150,7 @@ def comienzo_ronda(n_rondas):
     puntos = 1
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("set vira", vira))
+    sleep(TIME_BETWEEN_CARDS)
 
     for i in jugadores.keys():
         for e in range(n_rondas):
@@ -160,9 +163,7 @@ def comienzo_ronda(n_rondas):
                 manos[clave] = [carta]
             else:
                 manos[clave].append(carta)
-            sleep(1)
-
-    sleep(10000)
+            sleep(TIME_BETWEEN_CARDS)
             
     '''
     Tenemos 3 opciones:
@@ -172,15 +173,18 @@ def comienzo_ronda(n_rondas):
 
     Todo jugador que empiece la ronda deberá a la fuerza echar la carta boca arriba (Esto se debe a que no existe la 2ª carta que manda).
     '''
-    x = con_man.esperar_eleccion(jugadores[dealer].cliente, "Elija su opción (BOCA ARRIBA, ENVIO)", ("BOCA ARRIBA", "ENVIO"), ("a", "b"))
+    x = con_man.esperar_eleccion(jugadores[dealer].cliente, "ACTION", ("Echar boca arriba", "Envio"), ("a", "b"))
+    print("recived action!")
     if x == "a":
         boca_arriba(dealer, manos[dealer])
     elif x == "b":
         envio()
 
+    sleep(100000)
+
     for e in range(3):
         jugador_q_le_toca = orden_jugadores[dealer_index+1+e]
-        x = con_man.esperar_eleccion(jugadores[jugador_q_le_toca].cliente, "Elija su opción (BOCA ARRIBA, BOCA ABAJO, ENVIO)", ("BOCA ARRIBA","BOCA ABAJO", "ENVIO"), ("a", "b", "c"))
+        x = con_man.esperar_eleccion(jugadores[jugador_q_le_toca].cliente, "ACTION", ("Echar boca arriba", "Echar boca abajo", "Envio"), ("a", "b", "c"))
         if x == "a":
             boca_arriba(jugador_q_le_toca, manos[jugador_q_le_toca])
         elif x == "b":
@@ -254,7 +258,7 @@ def start():
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("start game", orden_jugadores))
 
-    sleep(1)
+    sleep(TIME_BETWEEN_CARDS)
 
     game_loop()
 
