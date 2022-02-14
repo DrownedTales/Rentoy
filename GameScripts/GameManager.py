@@ -11,7 +11,7 @@ from GameScripts.Player import *
 
 N_JUGADORES = 4
 N_EQUIPOS = 2
-TIME_BETWEEN_CARDS = 0.5
+TIME_BETWEEN_CARDS = 0.8
 
 jugadores = dict()
 
@@ -79,6 +79,12 @@ def __get_order_carta(carta):
 
     return orden_jugador
 
+def sumar_puntos(puntos, jugador):
+    for i in equipos.keys():
+        if jugador in equipos[i]:
+            puntuaciones[i] += puntos
+            break
+
 def ganar_puntos(puntos):
     carta_max : Carta = None
     for carta in cartas_juego.values():
@@ -97,10 +103,7 @@ def ganar_puntos(puntos):
         if cartas_juego[i] == carta_max:
             jugador = i 
             break
-    for i in equipos.keys():
-        if jugador in equipos[i]:
-            puntuaciones[i] += puntos
-            break
+    sumar_puntos(puntos, jugador)
 
 def eleccion_carta(nombre_jugador, mano):
     return con_man.esperar_eleccion(jugadores[nombre_jugador].cliente, "CARD", tuple(mano), tuple(mano))
@@ -120,9 +123,18 @@ def boca_abajo(nombre_jugador, mano):
     carta = eleccion_carta(nombre_jugador, mano)
     mano.remove(carta)
 
-def envio(nombre_jugador, puntos):
-    puntos 
-    pass
+def envio(nombre_jugador, otro_jugador, puntos):
+    if puntos == 1:
+        new_puntos = puntos + 2
+    elif puntos >= 3:
+        new_puntos = puntos + 3
+    respuesta = con_man.pedir_eleccion(jugadores[otro_jugador].cliente, "ENVIO", ("acepto", "no acepto", "subo: "+str(new_puntos)), ("acepto","no acepto","subo"))
+    if respuesta == "acepto":
+        return new_puntos, True
+    elif respuesta == "no acepto":
+        return puntos, False, nombre_jugador
+    elif respuesta == "subo":
+        return envio(otro_jugador, nombre_jugador, new_puntos)
     
 
 def comienzo_ronda(n_rondas):
@@ -178,19 +190,27 @@ def comienzo_ronda(n_rondas):
     if x == "a":
         boca_arriba(dealer, manos[dealer])
     elif x == "b":
-        envio()
+        res = envio(dealer, orden_jugadores[(dealer_index + 1) % N_JUGADORES], puntos)
+        puntos = res[0]
+        if res[1] == False:
+            sumar_puntos(puntos, res[2])
+            return
 
     sleep(100000)
 
     for e in range(3):
-        jugador_q_le_toca = orden_jugadores[dealer_index+1+e]
+        jugador_q_le_toca = orden_jugadores[(dealer_index+1+e) % N_JUGADORES]
         x = con_man.esperar_eleccion(jugadores[jugador_q_le_toca].cliente, "ACTION", ("Echar boca arriba", "Echar boca abajo", "Envio"), ("a", "b", "c"))
         if x == "a":
             boca_arriba(jugador_q_le_toca, manos[jugador_q_le_toca])
         elif x == "b":
             boca_abajo(jugador_q_le_toca, manos[jugador_q_le_toca])
         elif x == "c":
-            envio()
+            res = envio(jugador_q_le_toca, orden_jugadores[(dealer_index + e + 1) % N_JUGADORES], puntos)
+            puntos = res[0]
+            if res[1] == False:
+                sumar_puntos(puntos, res[2])
+                return
 
     ganar_puntos(puntos)
 
@@ -204,9 +224,6 @@ def comienzo_sprint_final():
 def comienzo_quiero():
     comienzo_ronda(3)
     ### ESTO ES MAS COMPLICAO. HAY QUE PREGUNTARLE AL EQUIPO CON 29 PUNTOS SI QUISIERA JUGAR LA RONDA O NO ###
-
-def turnos(parametro):
-    pass
 
 def game_loop():
     while True:
