@@ -1,4 +1,3 @@
-from asyncio import events
 from time import sleep
 import tkinter
 from PIL import ImageTk, Image
