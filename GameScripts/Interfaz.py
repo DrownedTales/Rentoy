@@ -11,7 +11,7 @@ WINDOW_SIZE = (1080, 720)
 CARD_SIZE = 150
 MY_CARD_SIZE = 250
 HAND_FRAME_HEIGHT = 150
-BACK_CARD_URL = "Images/test3.png"
+BACK_CARD_URL = "Images/detras.png"
 BUTTON_IMG = "Images/buttontest1.png"
 CARD_OFFSET = 30
 MY_CARD_OFFSET = 100
@@ -252,7 +252,7 @@ def start_game(players, player_name):
     #placeholder de la pila
     draw_image("Images/test1.png", CARD_SIZE, mazo_pos, 0, "pila")
     #placeholder del mazo
-    draw_image("Images/test2.png", CARD_SIZE, pila_pos, 0, "mazo")
+    draw_image(BACK_CARD_URL, CARD_SIZE, pila_pos, 0, "mazo")
     #botones
     up_button = make_button(_root, "Echar boca arriba", "#FFFFFF", BUTTON_IMG, "up button", lambda: button_call("Echar boca arriba"))
     up_button.config(state="disabled")

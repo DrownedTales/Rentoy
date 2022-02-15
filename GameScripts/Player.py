@@ -20,18 +20,14 @@ nombre_jugador : str = None
 
 def add_carta_mano(carta: Carta):
     mano.append(carta)
-    #Interfaz.draw_hand_card(carta.to_string(), nombre_jugador)
-    #lo de arriba es el final, esto es provisional
-    Interfaz.draw_hand_card("test4")
+    Interfaz.draw_hand_card(carta.to_string())
     print("add carta to mano")
 
 def add_carta_vira(carta: Carta):
     global vira
     vira = carta
 
-    #Interfaz.set_vira(carta.to_string())
-    #lo de arriba es el final, esto es provisional
-    Interfaz.draw_vira("test5")
+    Interfaz.draw_vira(carta.to_string())
     print("add vira", nombre_jugador)
 
 def mostrar_mano():

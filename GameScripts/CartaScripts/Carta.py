@@ -1,5 +1,5 @@
 
-palos = ["Oros", "Copas", "Espadas", "Bastos"]
+palos = ["Oro", "Copa", "Espada", "Basto"]
 valores = ["2", "3", "4", "5", "6", "7", "As", "Sota", "Caballo", "Rey"]
 
 class Carta:
