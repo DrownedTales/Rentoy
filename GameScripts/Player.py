@@ -107,7 +107,8 @@ def on_message_recived(msg, type_of_msg):
             card_name: str = Interfaz.select_hand_card()
             enviar_mensaje((Carta(card_name.split(" ")[0], card_name.split(" ")[2]), nombre_jugador))
         elif msg[0] == "Envio":
-            Interfaz.
+            #Interfaz.
+            pass
         else:
             Interfaz.clear_window()
             Interfaz.mostrarMensaje(msg[0])

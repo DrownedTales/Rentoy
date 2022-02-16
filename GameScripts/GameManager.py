@@ -140,13 +140,12 @@ def envio(nombre_jugador, otro_jugador, puntos):
         return envio(otro_jugador, nombre_jugador, new_puntos)
     
 
-def comienzo_ronda(n_rondas):
+def comienzo_ronda(n_rondas, mazo):
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("start game", orden_jugadores))
 
     sleep(TIME_BETWEEN_CARDS)
 
-    mazo = crear_mazo()
     manos = dict()
 
     global dealer_index
@@ -158,8 +157,7 @@ def comienzo_ronda(n_rondas):
     dealer = orden_jugadores[dealer_index]
 
     global vira
-    vira = sacar_carta_aleatoria(mazo)
-
+    
     global sec_vira
     sec_vira = None
 
@@ -206,7 +204,6 @@ def comienzo_ronda(n_rondas):
             sumar_puntos(puntos, res[2])
             return
 
-    #sleep(100000)
     sleep(TIME_BETWEEN_CARDS)
 
     for e in range(3):
@@ -231,8 +228,12 @@ def comienzo_ronda(n_rondas):
     ganar_puntos(puntos)
 
 def comienzo_super_ronda():
+    mazo = crear_mazo()
+    global vira
+    vira = sacar_carta_aleatoria(mazo)
+
     for i in range(1,4):
-        comienzo_ronda(i)
+        comienzo_ronda(i, mazo)
 
 def comienzo_sprint_final():
     comienzo_ronda(3)

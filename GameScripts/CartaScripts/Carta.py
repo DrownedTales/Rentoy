@@ -29,7 +29,7 @@ class Carta:
     def mayorq(self, vira, secvira, otra, orden, orden_otra) -> bool:
         res = False
 
-        lista = enumerate(valores)
+        lista = list(enumerate(valores))
 
         if self.palo == otra.palo:
             if self.palo == vira.palo:
