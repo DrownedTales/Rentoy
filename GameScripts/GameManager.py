@@ -113,15 +113,18 @@ def boca_arriba(nombre_jugador, mano):
 
     carta = eleccion_carta(nombre_jugador, mano)
     mano.remove(carta)
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("jugar carta", "up", nombre_jugador, carta))
     cartas_juego[nombre_jugador] = carta
-    con_man.enviar_mensaje(__get_clientes_de(jugadores), carta)
-
-    if sec_vira == None:
-        sec_vira = carta
+    return carta
 
 def boca_abajo(nombre_jugador, mano):
+    global cartas_juego
+
     carta = eleccion_carta(nombre_jugador, mano)
     mano.remove(carta)
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("jugar carta", "down", nombre_jugador, carta))
+    cartas_juego[nombre_jugador] = carta
+    return carta
 
 def envio(nombre_jugador, otro_jugador, puntos):
     if puntos == 1:
@@ -139,13 +142,15 @@ def envio(nombre_jugador, otro_jugador, puntos):
 
 def comienzo_ronda(n_rondas):
 
-    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("resetear ronda", n_rondas + 1))
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("start game", orden_jugadores))
+
+    sleep(TIME_BETWEEN_CARDS)
 
     mazo = crear_mazo()
     manos = dict()
 
     global dealer_index
-    dealer_index += 1
+    dealer_index = (dealer_index + 1) % N_JUGADORES
 
     global cartas_juego
     cartas_juego = dict()
@@ -185,10 +190,15 @@ def comienzo_ronda(n_rondas):
 
     Todo jugador que empiece la ronda deberá a la fuerza echar la carta boca arriba (Esto se debe a que no existe la 2ª carta que manda).
     '''
+    print("le toca a ", dealer)
     x = con_man.esperar_eleccion(jugadores[dealer].cliente, "ACTION", ("Echar boca arriba", "Envio"), ("a", "b"))
     print("recived action!")
     if x == "a":
-        boca_arriba(dealer, manos[dealer])
+        carta = boca_arriba(dealer, manos[dealer])
+        if sec_vira == None:
+            sec_vira = carta
+        con_man.enviar_mensaje(__get_clientes_de(jugadores), ("set sec vira", sec_vira))
+
     elif x == "b":
         res = envio(dealer, orden_jugadores[(dealer_index + 1) % N_JUGADORES], puntos)
         puntos = res[0]
@@ -196,11 +206,14 @@ def comienzo_ronda(n_rondas):
             sumar_puntos(puntos, res[2])
             return
 
-    sleep(100000)
+    #sleep(100000)
+    sleep(TIME_BETWEEN_CARDS)
 
     for e in range(3):
         jugador_q_le_toca = orden_jugadores[(dealer_index+1+e) % N_JUGADORES]
+        print("le toca a ", jugador_q_le_toca)
         x = con_man.esperar_eleccion(jugadores[jugador_q_le_toca].cliente, "ACTION", ("Echar boca arriba", "Echar boca abajo", "Envio"), ("a", "b", "c"))
+        print("recived action!")
         if x == "a":
             boca_arriba(jugador_q_le_toca, manos[jugador_q_le_toca])
         elif x == "b":
@@ -211,6 +224,9 @@ def comienzo_ronda(n_rondas):
             if res[1] == False:
                 sumar_puntos(puntos, res[2])
                 return
+        sleep(TIME_BETWEEN_CARDS)
+
+    sleep(5)
 
     ganar_puntos(puntos)
 
@@ -223,11 +239,10 @@ def comienzo_sprint_final():
 
 def comienzo_quiero():
     comienzo_ronda(3)
-    ### ESTO ES MAS COMPLICAO. HAY QUE PREGUNTARLE AL EQUIPO CON 29 PUNTOS SI QUISIERA JUGAR LA RONDA O NO ###
+    # ESTO ES MAS COMPLICAO. HAY QUE PREGUNTARLE AL EQUIPO CON 29 PUNTOS SI QUISIERA JUGAR LA RONDA O NO
 
 def game_loop():
     while True:
-
         puntuacion1 = puntuaciones[list(equipos.keys())[0]]
         puntuacion2 = puntuaciones[list(equipos.keys())[1]]
 
@@ -272,10 +287,6 @@ def start():
                 pass
 
     print("Listos para empezar...")
-
-    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("start game", orden_jugadores))
-
-    sleep(TIME_BETWEEN_CARDS)
 
     game_loop()
 

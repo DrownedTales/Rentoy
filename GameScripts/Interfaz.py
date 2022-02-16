@@ -8,17 +8,18 @@ from events import Events
 #ESTE CODIGO ES FEO DE COJONES Y HAY QUE LIMPIARLO. PERO FUNCIONA Y SOY VAGO
 
 WINDOW_SIZE = (1080, 720)
-CARD_SIZE = 150
-MY_CARD_SIZE = 250
-HAND_FRAME_HEIGHT = 150
+CARD_SIZE = 125
+MY_CARD_SIZE = 200
+HAND_FRAME_HEIGHT = 175
 BACK_CARD_URL = "Images/detras.png"
 BUTTON_IMG = "Images/buttontest1.png"
-CARD_OFFSET = 30
-MY_CARD_OFFSET = 100
+CARD_OFFSET = 50
+MY_CARD_OFFSET = 200
 BUTTON_FONT = ("Alice in Wonderland", 40)
 TITLE_FONT = ("Alice in Wonderland", 40)
 BASIC_FONT = ("Alice in Wonderland", 40)
 WINDOW_CARD_MARGIN = 50
+SELECTED_CARD_MARGIN = 150
 ANIMATION_FRAMES = 60
 DRAW_CARD_TIME = 0.2
 
@@ -107,7 +108,7 @@ def draw_hand_card(card_path):
     n = len([i for i in images.keys() if "this player" in i])
     #print("images keys", images.keys())
     id = "this player" + " " + card_path
-    pos = ((WINDOW_SIZE[0]/2) - MY_CARD_OFFSET + (MY_CARD_OFFSET*n), WINDOW_SIZE[1] - (HAND_FRAME_HEIGHT/2))
+    pos = ((WINDOW_SIZE[0]/2) + (MY_CARD_OFFSET*n), WINDOW_SIZE[1] - (HAND_FRAME_HEIGHT/2))
     item = draw_image_animated("Images/" + card_path + ".png", CARD_SIZE, MY_CARD_SIZE, mazo_pos, pos, 0, 0, id, DRAW_CARD_TIME)
     main_canvas.tag_bind(item, '<ButtonPress-1>', lambda e: card_button_call(id, e))
     global hand_cards
@@ -115,6 +116,10 @@ def draw_hand_card(card_path):
 
 def draw_vira(card_path):
     draw_image_animated("Images/" + card_path + ".png", CARD_SIZE, CARD_SIZE, mazo_pos, vira_pos, 0, 0, "vira", DRAW_CARD_TIME)
+
+def draw_sec_vira(card_path):
+    #draw_image_animated("Images/" + card_path + ".png", CARD_SIZE, CARD_SIZE, mazo_pos, secvira_pos, 0, 0, "sec vira", DRAW_CARD_TIME)
+    pass
 
 def draw_hidden_card(player_name):
     n = len([i for i in images.keys() if player_name in i])
@@ -184,30 +189,65 @@ def select_hand_card():
 
     id = carta_eleccion[0]
     print("choosen card", id)
-    pos = hand_cards[id][1]
     path = id.replace("this player ", "")
+    return path
+
+def card_to_selected_up(card_name):
+    id = "this player " + card_name
+    pos = hand_cards[id][1]
     global main_canvas
     main_canvas.delete(hand_cards[id][0])
     hand_cards[id] = None
     images[id] = None
-    draw_image_animated("Images/" + path + ".png", MY_CARD_SIZE, CARD_SIZE, pos, (WINDOW_SIZE[0]/2, WINDOW_SIZE[1]*0.65),\
+    draw_image_animated("Images/" + card_name + ".png", MY_CARD_SIZE, CARD_SIZE, pos, (WINDOW_SIZE[0]/2, WINDOW_SIZE[1]-HAND_FRAME_HEIGHT*1.5),\
         0, 0, "this player selected", DRAW_CARD_TIME)
-    return path
+
+def card_to_selected_down(card_name):
+    id = "this player " + card_name
+    pos = hand_cards[id][1]
+    global main_canvas
+    main_canvas.delete(hand_cards[id][0])
+    hand_cards[id] = None
+    images[id] = None
+    draw_image_animated(BACK_CARD_URL, MY_CARD_SIZE, CARD_SIZE, pos, (WINDOW_SIZE[0]/2, WINDOW_SIZE[1]-HAND_FRAME_HEIGHT*1.5),\
+        0, 0, "this player selected", DRAW_CARD_TIME)
+
+def another_card_to_selected_up(card_name, player_name):
+    n = len([i for i in images.keys() if player_name in i])
+    id = player_name + " " + str(n)
+    pos = player_pos[player_name][0]
+    pos2 = player_pos[player_name][2]
+    rot = player_pos[player_name][1]
+    global main_canvas
+    images[id] = None
+    draw_image_animated("Images/" + card_name + ".png", MY_CARD_SIZE, CARD_SIZE, pos, pos2,\
+        rot, rot, player_name + " selected", DRAW_CARD_TIME)
+
+def another_card_to_selected_down(player_name):
+    n = len([i for i in images.keys() if player_name in i])
+    id = player_name + " " + str(n)
+    pos = player_pos[player_name][0]
+    pos2 = player_pos[player_name][2]
+    rot = player_pos[player_name][1]
+    global main_canvas
+    images[id] = None
+    draw_image_animated(BACK_CARD_URL, MY_CARD_SIZE, CARD_SIZE, pos, pos2,\
+        rot, rot, player_name + " selected", DRAW_CARD_TIME)
 
 def choose_action(options, res):
     for i in action_buttons:
         a = False
         for e in options:
-            if e == i.cget('text'): #feo, estupido, son las 1:30 y me dije hace una hora que iba a parar ya. Ayuda
+            if e == i[0]:
                 a = True
         if a:
-            i.config(state="normal")
+            i[1].config(state="normal")
 
     while button_guard == False:
         sleep(0.05)
 
     for i in action_buttons:
-        i.config(state="disabled")
+        i[1].config(state="disabled")
 
     for i in range(len(options)):
         if options[i] == index_eleccion:
@@ -238,16 +278,18 @@ def start_game(players, player_name):
     main_canvas = canvas
 
     main_canvas.delete("all")
+
+    global images
     images.clear()
 
     global vira_pos
-    vira_pos = (WINDOW_SIZE[0]*0.4, WINDOW_SIZE[1]*0.25)
+    vira_pos = (WINDOW_SIZE[0]*0.35, WINDOW_SIZE[1]*0.3)
     global secvira_pos
-    secvira_pos = (WINDOW_SIZE[0]*0.6, WINDOW_SIZE[1]*0.25)
+    secvira_pos = (WINDOW_SIZE[0]*0.65, WINDOW_SIZE[1]*0.3)
     global mazo_pos
-    mazo_pos = (WINDOW_SIZE[0]*0.6, WINDOW_SIZE[1]*0.5)
+    mazo_pos = (WINDOW_SIZE[0]*0.65, WINDOW_SIZE[1]*0.6)
     global pila_pos
-    pila_pos = (WINDOW_SIZE[0]*0.4, WINDOW_SIZE[1]*0.5)
+    pila_pos = (WINDOW_SIZE[0]*0.35, WINDOW_SIZE[1]*0.6)
     
     #placeholder de la pila
     draw_image("Images/test1.png", CARD_SIZE, mazo_pos, 0, "pila")
@@ -256,14 +298,20 @@ def start_game(players, player_name):
     #botones
     up_button = make_button(_root, "Echar boca arriba", "#FFFFFF", BUTTON_IMG, "up button", lambda: button_call("Echar boca arriba"))
     up_button.config(state="disabled")
-    up_button.place(relx=0.025, rely=0.7, relheight=0.1, relwidth=0.3)
+    up_button.place(relx=0.025, rely=0.8, relheight=0.075, relwidth=0.3)
     down_button = make_button(_root, "Echar boca abajo", "#FFFFFF", BUTTON_IMG, "down button", lambda: button_call("Echar boca abajo"))
     down_button.config(state="disabled")
-    down_button.place(relx=0.025, rely=0.85, relheight=0.1, relwidth=0.3)
+    down_button.place(relx=0.025, rely=0.9, relheight=0.075, relwidth=0.3)
+    envio_button = make_button(_root, "Envio", "#FFFFFF", BUTTON_IMG, "envio button", lambda: button_call("Envio"))
+    envio_button.config(state="disabled")
+    envio_button.place(relx=0.025, rely=0.7, relheight=0.075, relwidth=0.3)
+
 
     global action_buttons
-    action_buttons.append(up_button)
-    action_buttons.append(down_button)
+    action_buttons = []
+    action_buttons.append(("Echar boca arriba", up_button))
+    action_buttons.append(("Echar boca abajo", down_button))
+    action_buttons.append(("Envio", envio_button))
 
     order = []
     index: int = None
@@ -287,13 +335,17 @@ def start_game(players, player_name):
                 side_right.append(i)
             elif i % 3 == 2:
                 side_top.append(i)
+    global player_pos
     for i in range(len(order)):
             if i % 3 == 0:
-                player_pos[order[i]] = ((WINDOW_CARD_MARGIN, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_left)+1)), 270)
+                player_pos[order[i]] = ((WINDOW_CARD_MARGIN, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_left)+1)), 270,\
+                    (WINDOW_CARD_MARGIN + SELECTED_CARD_MARGIN, (WINDOW_SIZE[1] - CARD_OFFSET - HAND_FRAME_HEIGHT)/(len(side_left)+1)))
             elif i % 3  == 1:
-                player_pos[order[i]] = (((WINDOW_SIZE[0])/(len(side_top)+1), WINDOW_CARD_MARGIN), 180)
+                player_pos[order[i]] = (((WINDOW_SIZE[0])/(len(side_top)+1), WINDOW_CARD_MARGIN), 180,\
+                    ((WINDOW_SIZE[0] + CARD_OFFSET)/(len(side_top)+1), WINDOW_CARD_MARGIN + SELECTED_CARD_MARGIN))
             elif i % 3 == 2:
-                player_pos[order[i]] = ((WINDOW_SIZE[0] - WINDOW_CARD_MARGIN, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_right)+1)), 90)
+                player_pos[order[i]] = ((WINDOW_SIZE[0] - WINDOW_CARD_MARGIN, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_right)+1)), 90, \
+                    (WINDOW_SIZE[0] - WINDOW_CARD_MARGIN - SELECTED_CARD_MARGIN, (WINDOW_SIZE[1] - CARD_OFFSET - HAND_FRAME_HEIGHT)/(len(side_left)+1)))
     print(player_pos)
 
 def connection_screen():

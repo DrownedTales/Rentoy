@@ -14,39 +14,35 @@ from GameScripts.ClasePlayer import Jugador
 cliente : Client = None
 running: bool = False
 
-mano = []
-vira : Carta = None
 nombre_jugador : str = None
 
 def add_carta_mano(carta: Carta):
-    mano.append(carta)
     Interfaz.draw_hand_card(carta.to_string())
     print("add carta to mano")
 
 def add_carta_vira(carta: Carta):
-    global vira
-    vira = carta
-
     Interfaz.draw_vira(carta.to_string())
     print("add vira", nombre_jugador)
 
-def mostrar_mano():
-    Interfaz.mostrarMensaje(str(mano))
+def add_carta_sec_vira(carta: Carta):
+    Interfaz.draw_sec_vira(carta.to_string())
+    print("add sec vira", nombre_jugador)
 
-def reset_ronda(n_rondas):
-    global mano
-    global vira
-    mano = []
-    vira = None
-    print("reset ronda")
-    Interfaz.mostrarMensaje("Comenzará la ronda " + str(n_rondas))
+def jugar_carta(msg):
+    if msg[2] == nombre_jugador:
+        if msg[1] == "up":
+            Interfaz.card_to_selected_up(msg[3].to_string())
+        elif msg[1] == "down":
+            Interfaz.card_to_selected_down(msg[3].to_string())
+    else:
+        if msg[1] == "up":
+            Interfaz.another_card_to_selected_up(msg[3].to_string(), msg[2])
+        elif msg[1] == "down":
+            Interfaz.another_card_to_selected_down(msg[2])
 
 def set_jugador(nombre):
     global nombre_jugador
     nombre_jugador = nombre
-
-def mostrar_vira(carta: Carta):
-    Interfaz.mostrarMensaje(carta)
 
 def enviar_mensaje(msg):
     cliente.send_message(msg, "data")
@@ -64,8 +60,6 @@ def on_message_recived(msg, type_of_msg):
                 Interfaz.make_error_popup(msg[1], msg[2])
             elif msg[0] == "clear window":
                 Interfaz.clear_window()
-            elif msg[0] == "resetear ronda":
-                reset_ronda(msg[1])
             elif msg[0] == "start game":
                 Interfaz.start_game(msg[1], nombre_jugador)
             elif msg[0] == "set jugador":
@@ -87,8 +81,13 @@ def on_message_recived(msg, type_of_msg):
                     add_carta_vira(msg[1])
                 else:
                     print("wtf")
-        elif msg == "mostrar mano":
-            mostrar_mano()
+            elif msg[0] == "set sec vira":
+                if isinstance(msg[1], Carta):
+                    add_carta_sec_vira(msg[1])
+                else:
+                    print("wtf")
+            elif msg[0] == "jugar carta":
+                jugar_carta(msg)
         else:
             Interfaz.mostrarMensaje("Game Manager: " + str(msg))
         
@@ -107,6 +106,8 @@ def on_message_recived(msg, type_of_msg):
         elif msg[0] == "CARD":
             card_name: str = Interfaz.select_hand_card()
             enviar_mensaje((Carta(card_name.split(" ")[0], card_name.split(" ")[2]), nombre_jugador))
+        elif msg[0] == "Envio":
+            Interfaz.
         else:
             Interfaz.clear_window()
             Interfaz.mostrarMensaje(msg[0])

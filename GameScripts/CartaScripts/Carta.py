@@ -20,6 +20,12 @@ class Carta:
         self.valor = a
         self.palo = b
 
+    def __eq__(self, __o: object) -> bool:
+        if type(__o) == Carta:
+            if __o.palo == self.palo and __o.valor == self.valor:
+                return True
+        return False
+
     def mayorq(self, vira, secvira, otra, orden, orden_otra) -> bool:
         res = False
 
