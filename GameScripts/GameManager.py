@@ -17,7 +17,7 @@ jugadores = dict()
 
 con_man : ConnectionManager = None
 
-dealer_index = 0
+dealer_index: int = 0
 
 cartas_juego = dict()
 
@@ -131,7 +131,9 @@ def envio(nombre_jugador, otro_jugador, puntos):
         new_puntos = puntos + 2
     elif puntos >= 3:
         new_puntos = puntos + 3
-    respuesta = con_man.pedir_eleccion(jugadores[otro_jugador].cliente, "ENVIO", ("acepto", "no acepto", "subo: "+str(new_puntos)), ("acepto","no acepto","subo"))
+    respuesta = con_man.esperar_eleccion(jugadores[otro_jugador].cliente, "POPUP",\
+        ("acepto", "no acepto", "subo: "+str(new_puntos)), ("acepto","no acepto","subo"))
+    print(respuesta)
     if respuesta == "acepto":
         return new_puntos, True
     elif respuesta == "no acepto":
@@ -139,10 +141,40 @@ def envio(nombre_jugador, otro_jugador, puntos):
     elif respuesta == "subo":
         return envio(otro_jugador, nombre_jugador, new_puntos)
     
+def turn_handling(nombre, index, manos, options):
+    sleep(TIME_BETWEEN_CARDS)
+    global sec_vira
+    global puntos
+    x = con_man.esperar_eleccion(jugadores[nombre].cliente, "ACTION", options, options)
+    print("recived action!")
+    if x == "Echar boca arriba":
+        carta = boca_arriba(nombre, manos[nombre])
+        if sec_vira == None:
+            sec_vira = carta
+        con_man.enviar_mensaje(__get_clientes_de(jugadores), ("set sec vira", sec_vira))
+    elif x == "Echar boca abajo":
+        boca_abajo(nombre, manos[nombre])
+    elif x == "Envio":
+        res = envio(nombre, orden_jugadores[(index + 1) % N_JUGADORES], puntos)
+        puntos = res[0]
+        con_man.enviar_mensaje(__get_clientes_de(jugadores), ("update on play points", puntos))
+        if res[1] == False:
+            sumar_puntos(puntos, res[2])
+            return False
+        a = []
+        for i in options:
+            if i != "Envio":
+                a.append(i)
+        return turn_handling(nombre, index, manos, tuple(a))
+
 
 def comienzo_ronda(n_rondas, mazo):
 
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("start game", orden_jugadores))
+    
+    sleep(0.1)
+
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("update points", puntuaciones))
 
     sleep(TIME_BETWEEN_CARDS)
 
@@ -164,6 +196,8 @@ def comienzo_ronda(n_rondas, mazo):
     global puntos
     puntos = 1
 
+    con_man.enviar_mensaje(__get_clientes_de(jugadores), ("update on play points", puntos))
+
     con_man.enviar_mensaje(__get_clientes_de(jugadores), ("set vira", vira))
     sleep(TIME_BETWEEN_CARDS)
 
@@ -180,48 +214,17 @@ def comienzo_ronda(n_rondas, mazo):
                 manos[clave].append(carta)
             sleep(TIME_BETWEEN_CARDS)
             
-    '''
-    Tenemos 3 opciones:
-        -   Echar la carta boca arriba
-        -   Echar la carta boca abajo
-        -   Enviar (Apostar)
-
-    Todo jugador que empiece la ronda deberá a la fuerza echar la carta boca arriba (Esto se debe a que no existe la 2ª carta que manda).
-    '''
     print("le toca a ", dealer)
-    x = con_man.esperar_eleccion(jugadores[dealer].cliente, "ACTION", ("Echar boca arriba", "Envio"), ("a", "b"))
-    print("recived action!")
-    if x == "a":
-        carta = boca_arriba(dealer, manos[dealer])
-        if sec_vira == None:
-            sec_vira = carta
-        con_man.enviar_mensaje(__get_clientes_de(jugadores), ("set sec vira", sec_vira))
-
-    elif x == "b":
-        res = envio(dealer, orden_jugadores[(dealer_index + 1) % N_JUGADORES], puntos)
-        puntos = res[0]
-        if res[1] == False:
-            sumar_puntos(puntos, res[2])
-            return
-
-    sleep(TIME_BETWEEN_CARDS)
+    cont = turn_handling(dealer, dealer_index, manos, ("Echar boca arriba", "Envio"))
+    if cont == False:
+        return
 
     for e in range(3):
         jugador_q_le_toca = orden_jugadores[(dealer_index+1+e) % N_JUGADORES]
         print("le toca a ", jugador_q_le_toca)
-        x = con_man.esperar_eleccion(jugadores[jugador_q_le_toca].cliente, "ACTION", ("Echar boca arriba", "Echar boca abajo", "Envio"), ("a", "b", "c"))
-        print("recived action!")
-        if x == "a":
-            boca_arriba(jugador_q_le_toca, manos[jugador_q_le_toca])
-        elif x == "b":
-            boca_abajo(jugador_q_le_toca, manos[jugador_q_le_toca])
-        elif x == "c":
-            res = envio(jugador_q_le_toca, orden_jugadores[(dealer_index + e + 1) % N_JUGADORES], puntos)
-            puntos = res[0]
-            if res[1] == False:
-                sumar_puntos(puntos, res[2])
-                return
-        sleep(TIME_BETWEEN_CARDS)
+        cont = turn_handling(jugador_q_le_toca, dealer_index+1+e, manos, ("Echar boca arriba", "Echar boca abajo", "Envio"))
+        if cont == False:
+            return
 
     sleep(5)
 
@@ -256,7 +259,7 @@ def game_loop():
 
 def pedir_equipos(clientes):
     #nombre_equipos = [str(i) for i in range(int(len(jugadores)/2))]
-    nombre_equipos = [i for i in range(N_EQUIPOS)]
+    nombre_equipos = ["Equipo " + str(i) for i in range(N_EQUIPOS)]
     respuestas = [(lambda x, i=i: establecer_equipos(x, nombre_equipos[i])) for i in range(len(nombre_equipos))]
 
     con_man.pedir_eleccion(clientes, "Elige equipo", tuple(nombre_equipos), tuple(respuestas))

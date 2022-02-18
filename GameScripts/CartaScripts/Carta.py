@@ -29,7 +29,9 @@ class Carta:
     def mayorq(self, vira, secvira, otra, orden, orden_otra) -> bool:
         res = False
 
-        lista = list(enumerate(valores))
+        lista = []
+        for i in range(len(valores)):
+            lista.append([i, valores[i]])
 
         if self.palo == otra.palo:
             if self.palo == vira.palo:

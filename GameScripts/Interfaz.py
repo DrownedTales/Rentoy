@@ -8,18 +8,19 @@ from events import Events
 #ESTE CODIGO ES FEO DE COJONES Y HAY QUE LIMPIARLO. PERO FUNCIONA Y SOY VAGO
 
 WINDOW_SIZE = (1080, 720)
+WINDOW_PLAY_SIZE = (720, 720)
 CARD_SIZE = 125
-MY_CARD_SIZE = 200
+MY_CARD_SIZE = 175
 HAND_FRAME_HEIGHT = 175
 BACK_CARD_URL = "Images/detras.png"
 BUTTON_IMG = "Images/buttontest1.png"
 CARD_OFFSET = 50
-MY_CARD_OFFSET = 200
-BUTTON_FONT = ("Alice in Wonderland", 40)
-TITLE_FONT = ("Alice in Wonderland", 40)
-BASIC_FONT = ("Alice in Wonderland", 40)
+MY_CARD_OFFSET = 175
+BUTTON_FONT = ("Comic Sans MS", 20)
+TITLE_FONT = ("Comic Sans MS", 30)
+BASIC_FONT = ("Comic Sans MS", 15)
 WINDOW_CARD_MARGIN = 50
-SELECTED_CARD_MARGIN = 150
+SELECTED_CARD_MARGIN = 135
 ANIMATION_FRAMES = 60
 DRAW_CARD_TIME = 0.2
 
@@ -33,11 +34,12 @@ events = Events()
 popup = None
 action_buttons = []
 hand_cards = dict()
+team_labels = []
+points_label = None
 
 vira_pos = None
 secvira_pos = None
 mazo_pos = None
-pila_pos = None
 
 button_guard = False
 card_guard = False
@@ -75,6 +77,23 @@ def make_error_popup(parametro, func):
     button.config(bg="blue")
     button.pack()
 
+def make_election_popup(label_text, options, funcs):
+    global popup
+    popup = tkinter.Toplevel()
+    l = tkinter.Label(popup, text=label_text, font=BASIC_FONT)
+    l.pack(pady=20)
+    
+    ltest = tkinter.Label(_root, text="blablablabla", font=BASIC_FONT)
+    ltest.place(relx=0.5, rely=0.5)
+
+    #popup.protocol("WM_DELETE_WINDOW", lambda: )
+    res = espera_eleccion(options, funcs, popup)
+    popup.destroy()
+
+    ltest.destroy()
+
+    return res
+
 def draw_source_image(img, size, pos, rot, id):
     resized_image= img.resize((size, size), Image.ANTIALIAS)
     rotated_image= resized_image.rotate(rot)
@@ -108,7 +127,7 @@ def draw_hand_card(card_path):
     n = len([i for i in images.keys() if "this player" in i])
     #print("images keys", images.keys())
     id = "this player" + " " + card_path
-    pos = ((WINDOW_SIZE[0]/2) + (MY_CARD_OFFSET*n), WINDOW_SIZE[1] - (HAND_FRAME_HEIGHT/2))
+    pos = ((WINDOW_PLAY_SIZE[0]/2) + 30 + (MY_CARD_OFFSET*n), WINDOW_PLAY_SIZE[1] - (HAND_FRAME_HEIGHT/2))
     item = draw_image_animated("Images/" + card_path + ".png", CARD_SIZE, MY_CARD_SIZE, mazo_pos, pos, 0, 0, id, DRAW_CARD_TIME)
     main_canvas.tag_bind(item, '<ButtonPress-1>', lambda e: card_button_call(id, e))
     global hand_cards
@@ -119,7 +138,7 @@ def draw_vira(card_path):
 
 def draw_sec_vira(card_path):
     #draw_image_animated("Images/" + card_path + ".png", CARD_SIZE, CARD_SIZE, mazo_pos, secvira_pos, 0, 0, "sec vira", DRAW_CARD_TIME)
-    pass
+    draw_image("Images/" + card_path + ".png", CARD_SIZE, secvira_pos, 0, "sec vira")
 
 def draw_hidden_card(player_name):
     n = len([i for i in images.keys() if player_name in i])
@@ -134,7 +153,7 @@ def draw_hidden_card(player_name):
     draw_image_animated(BACK_CARD_URL, CARD_SIZE, CARD_SIZE, mazo_pos, pos, 0, rot, player_name + " " + str(n), DRAW_CARD_TIME)
 
 def mostrarMensaje(parametro):
-    l = tkinter.Label(_root, text=parametro, font=BASIC_FONT)
+    l = tkinter.Label(_root, text=parametro, font=TITLE_FONT)
     l.pack(pady=20)
 
 def button_call(index = None): #si, ya se que esto es una chapuza. son las 3 y tengo sueño dejame
@@ -153,11 +172,11 @@ def card_button_call(index, e): #si, ya se que esto es una chapuza. son las 3 y 
     sleep(0.1)
     card_guard = False
 
-def espera_eleccion(parametros, funciones):
+def espera_eleccion(parametros, funciones, base=_root):
     buttons = []
     for i in range(len(parametros)):
-        button = make_button(_root, parametros[i], "#FFFFFF", BUTTON_IMG, "eleccion" + str(i), lambda i=i: button_call(i))
-        button.config(width=(WINDOW_SIZE[0]/len(parametros)-30))
+        button = make_button(base, parametros[i], "#FFFFFF", BUTTON_IMG, "eleccion" + str(i), lambda i=i: button_call(i))
+        button.config(width=(WINDOW_PLAY_SIZE[0]/len(parametros)-30))
         button.pack(side=tkinter.LEFT, padx=20, expand=1, fill=tkinter.X, anchor=tkinter.N)
         buttons.append(button)
 
@@ -171,6 +190,7 @@ def recibe_respuesta():
     input_box.pack(pady=20)
 
     button = make_button(_root, "aceptar", "#FFFFFF", BUTTON_IMG, "accept", button_call)
+    button.config(width=200, height=100)
     button.pack(pady=20)
 
     id = _root.bind('<Return>', button_call)
@@ -199,7 +219,7 @@ def card_to_selected_up(card_name):
     main_canvas.delete(hand_cards[id][0])
     hand_cards[id] = None
     images[id] = None
-    draw_image_animated("Images/" + card_name + ".png", MY_CARD_SIZE, CARD_SIZE, pos, (WINDOW_SIZE[0]/2, WINDOW_SIZE[1]-HAND_FRAME_HEIGHT*1.5),\
+    draw_image_animated("Images/" + card_name + ".png", MY_CARD_SIZE, CARD_SIZE, pos, (WINDOW_PLAY_SIZE[0]/2, WINDOW_PLAY_SIZE[1]-HAND_FRAME_HEIGHT*1.5),\
         0, 0, "this player selected", DRAW_CARD_TIME)
 
 def card_to_selected_down(card_name):
@@ -209,7 +229,7 @@ def card_to_selected_down(card_name):
     main_canvas.delete(hand_cards[id][0])
     hand_cards[id] = None
     images[id] = None
-    draw_image_animated(BACK_CARD_URL, MY_CARD_SIZE, CARD_SIZE, pos, (WINDOW_SIZE[0]/2, WINDOW_SIZE[1]-HAND_FRAME_HEIGHT*1.5),\
+    draw_image_animated(BACK_CARD_URL, MY_CARD_SIZE, CARD_SIZE, pos, (WINDOW_PLAY_SIZE[0]/2, WINDOW_PLAY_SIZE[1]-HAND_FRAME_HEIGHT*1.5),\
         0, 0, "this player selected", DRAW_CARD_TIME)
 
 def another_card_to_selected_up(card_name, player_name):
@@ -253,6 +273,22 @@ def choose_action(options, res):
         if options[i] == index_eleccion:
             return res[i]
 
+def update_points(teams):
+    global team_labels
+    for i in team_labels:
+        i.destroy()
+    team_labels.clear()
+    for i in range(len(teams)):
+        name = list(teams.keys())[i]
+        l = tkinter.Label(_root, text= name + ": " + str(teams[name]), font=BASIC_FONT)
+        l.place(relx=0.75, rely=(0.1 + i*0.1))
+        team_labels.append(l)
+
+def update_on_play_points(points):
+    global points_label
+    points_label = tkinter.Label(_root, text="Puntos en juego: " + str(points), font=BASIC_FONT)
+    points_label.place(relx=0.75, rely=0.3)
+
 def main_loop():
     root = tkinter.Tk()
     #window
@@ -283,28 +319,33 @@ def start_game(players, player_name):
     images.clear()
 
     global vira_pos
-    vira_pos = (WINDOW_SIZE[0]*0.35, WINDOW_SIZE[1]*0.3)
+    vira_pos = (WINDOW_SIZE[0]*0.85, WINDOW_SIZE[1]*0.5)
+    l = tkinter.Label(_root, text="Vira", font=TITLE_FONT)
+    l.place(relx=0.8, rely=0.6)
+
     global secvira_pos
-    secvira_pos = (WINDOW_SIZE[0]*0.65, WINDOW_SIZE[1]*0.3)
+    secvira_pos = (WINDOW_SIZE[0]*0.85, WINDOW_SIZE[1]*0.8)
+    l = tkinter.Label(_root, text="Segunda vira", font=TITLE_FONT)
+    l.place(relx=0.75, rely=0.9)
+
     global mazo_pos
-    mazo_pos = (WINDOW_SIZE[0]*0.65, WINDOW_SIZE[1]*0.6)
-    global pila_pos
-    pila_pos = (WINDOW_SIZE[0]*0.35, WINDOW_SIZE[1]*0.6)
+    mazo_pos = (WINDOW_PLAY_SIZE[0]*0.5, WINDOW_PLAY_SIZE[1]*0.45)
+
+    l = tkinter.Label(_root, text="Puntos", font=TITLE_FONT)
+    l.place(relx=0.8, rely=0)
     
-    #placeholder de la pila
-    draw_image("Images/test1.png", CARD_SIZE, mazo_pos, 0, "pila")
     #placeholder del mazo
-    draw_image(BACK_CARD_URL, CARD_SIZE, pila_pos, 0, "mazo")
+    draw_image(BACK_CARD_URL, CARD_SIZE, mazo_pos, 0, "mazo")
     #botones
     up_button = make_button(_root, "Echar boca arriba", "#FFFFFF", BUTTON_IMG, "up button", lambda: button_call("Echar boca arriba"))
     up_button.config(state="disabled")
-    up_button.place(relx=0.025, rely=0.8, relheight=0.075, relwidth=0.3)
+    up_button.place(relx=0.025, rely=0.8, relheight=0.075, relwidth=0.25)
     down_button = make_button(_root, "Echar boca abajo", "#FFFFFF", BUTTON_IMG, "down button", lambda: button_call("Echar boca abajo"))
     down_button.config(state="disabled")
-    down_button.place(relx=0.025, rely=0.9, relheight=0.075, relwidth=0.3)
+    down_button.place(relx=0.025, rely=0.9, relheight=0.075, relwidth=0.25)
     envio_button = make_button(_root, "Envio", "#FFFFFF", BUTTON_IMG, "envio button", lambda: button_call("Envio"))
     envio_button.config(state="disabled")
-    envio_button.place(relx=0.025, rely=0.7, relheight=0.075, relwidth=0.3)
+    envio_button.place(relx=0.025, rely=0.7, relheight=0.075, relwidth=0.25)
 
 
     global action_buttons
@@ -338,14 +379,21 @@ def start_game(players, player_name):
     global player_pos
     for i in range(len(order)):
             if i % 3 == 0:
-                player_pos[order[i]] = ((WINDOW_CARD_MARGIN, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_left)+1)), 270,\
-                    (WINDOW_CARD_MARGIN + SELECTED_CARD_MARGIN, (WINDOW_SIZE[1] - CARD_OFFSET - HAND_FRAME_HEIGHT)/(len(side_left)+1)))
+                player_pos[order[i]] = ((WINDOW_CARD_MARGIN, (WINDOW_PLAY_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_left)+1)), 270,\
+                    (WINDOW_CARD_MARGIN + SELECTED_CARD_MARGIN, (WINDOW_PLAY_SIZE[1] - CARD_OFFSET - HAND_FRAME_HEIGHT)/(len(side_left)+1)))
+                l = tkinter.Label(_root, text=order[i], font=BASIC_FONT)
+                l.place(x=player_pos[order[i]][0][0], y=player_pos[order[i]][0][1] - 50)
             elif i % 3  == 1:
-                player_pos[order[i]] = (((WINDOW_SIZE[0])/(len(side_top)+1), WINDOW_CARD_MARGIN), 180,\
-                    ((WINDOW_SIZE[0] + CARD_OFFSET)/(len(side_top)+1), WINDOW_CARD_MARGIN + SELECTED_CARD_MARGIN))
+                player_pos[order[i]] = (((WINDOW_PLAY_SIZE[0])/(len(side_top)+1), WINDOW_CARD_MARGIN), 180,\
+                    ((WINDOW_PLAY_SIZE[0] + CARD_OFFSET)/(len(side_top)+1), WINDOW_CARD_MARGIN + SELECTED_CARD_MARGIN))
+                l = tkinter.Label(_root, text=order[i], font=BASIC_FONT)
+                l.place(x=player_pos[order[i]][0][0], y=player_pos[order[i]][0][1] - 50)
             elif i % 3 == 2:
-                player_pos[order[i]] = ((WINDOW_SIZE[0] - WINDOW_CARD_MARGIN, (WINDOW_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_right)+1)), 90, \
-                    (WINDOW_SIZE[0] - WINDOW_CARD_MARGIN - SELECTED_CARD_MARGIN, (WINDOW_SIZE[1] - CARD_OFFSET - HAND_FRAME_HEIGHT)/(len(side_left)+1)))
+                player_pos[order[i]] = ((WINDOW_PLAY_SIZE[0] - WINDOW_CARD_MARGIN, (WINDOW_PLAY_SIZE[1] - HAND_FRAME_HEIGHT)/(len(side_right)+1)), 90, \
+                    (WINDOW_PLAY_SIZE[0] - WINDOW_CARD_MARGIN - SELECTED_CARD_MARGIN, (WINDOW_PLAY_SIZE[1] - CARD_OFFSET - HAND_FRAME_HEIGHT)/(len(side_left)+1)))
+                l = tkinter.Label(_root, text=order[i], font=BASIC_FONT)
+                l.place(x=player_pos[order[i]][0][0], y=player_pos[order[i]][0][1] + 50)
+
     print(player_pos)
 
 def connection_screen():

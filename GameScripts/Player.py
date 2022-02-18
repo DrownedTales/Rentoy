@@ -88,6 +88,10 @@ def on_message_recived(msg, type_of_msg):
                     print("wtf")
             elif msg[0] == "jugar carta":
                 jugar_carta(msg)
+            elif msg[0] == "update points":
+                Interfaz.update_points(msg[1])
+            elif msg[0] == "update on play points":
+                Interfaz.update_on_play_points(msg[1])
         else:
             Interfaz.mostrarMensaje("Game Manager: " + str(msg))
         
@@ -106,9 +110,9 @@ def on_message_recived(msg, type_of_msg):
         elif msg[0] == "CARD":
             card_name: str = Interfaz.select_hand_card()
             enviar_mensaje((Carta(card_name.split(" ")[0], card_name.split(" ")[2]), nombre_jugador))
-        elif msg[0] == "Envio":
-            #Interfaz.
-            pass
+        elif msg[0] == "POPUP":
+            res = Interfaz.make_election_popup("envio", msg[1], msg[2])
+            enviar_mensaje((res, nombre_jugador))
         else:
             Interfaz.clear_window()
             Interfaz.mostrarMensaje(msg[0])
